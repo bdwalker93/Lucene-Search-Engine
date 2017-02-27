@@ -13,7 +13,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
+
 
 import java.io.*;
 import java.util.ArrayList;
@@ -177,15 +177,8 @@ public class Indexer {
       }
     } else {
       String filename = file.getName().toLowerCase();
-      //===================================================
-      // Only index text files
-      //===================================================
-      if (filename.endsWith(".htm") || filename.endsWith(".html") || 
-              filename.endsWith(".xml") || filename.endsWith(".txt")) {
-        queue.add(file);
-      } else {
-        System.out.println("Skipped " + filename);
-      }
+      queue.add(file);
+   
     }
   }
 
