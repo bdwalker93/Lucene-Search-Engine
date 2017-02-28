@@ -46,7 +46,9 @@ public class Test_Lucene {
 	final private static boolean PRINT_INDEX_TO_FILE = false;
 	
 	public static void main(String[] args) throws IOException, ParseException{
-		 StandardAnalyzer analyzer = new StandardAnalyzer(); 			
+		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
+		 
+		 //TODO: This is not a persistant index. We need to find something that stores the index.
 		 Directory index = new RAMDirectory();																						
 		 IndexWriterConfig config = new IndexWriterConfig(analyzer);	
 		 IndexWriter w = new IndexWriter(index, config);				
@@ -69,7 +71,6 @@ public class Test_Lucene {
 		 printOutIndex(hmap);
          
 		 reader.close();    
-		 
 		 
 	}
 	
