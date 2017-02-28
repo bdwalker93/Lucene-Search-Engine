@@ -62,7 +62,8 @@ public class Test_Lucene {
 		 
 		 HashMap<String, ArrayList<String>> hmap = getIndexAsMap(reader);
 		 printOutIndex(hmap);
-         reader.close();    //Close reader when done
+         
+		 reader.close();    
 		 
 		 
 	}
