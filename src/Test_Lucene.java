@@ -42,6 +42,9 @@ import org.apache.lucene.util.BytesRef;
 
 public class Test_Lucene {
 
+	final private static boolean PRINT_INDEX_TO_SCREEN = true;
+	final private static boolean PRINT_INDEX_TO_FILE = false;
+	
 	public static void main(String[] args) throws IOException, ParseException{
 		 StandardAnalyzer analyzer = new StandardAnalyzer(); 			
 		 Directory index = new RAMDirectory();																						
@@ -50,9 +53,11 @@ public class Test_Lucene {
 		 
 		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
 		 
-		 //TODO:Instead of this being a single file, we will recurse through the files of a root directory
+		 //TODO:Instead of this being a single file, we will recurse through the files of a root directory (use the bookkeeping)
 		 File file = new File("SampleTextDoc.txt"); 
+		 File file2 = new File("secondSampleTextDoc.txt"); 
 		 addDoc(w, file);
+		 addDoc(w, file2);
 		 
 		//Close or commit IndexWriter to push changes for IndexReader
 		 w.close();	
@@ -102,10 +107,13 @@ public class Test_Lucene {
 		 
 		 for(int i=0; i<reader.numDocs(); i++){
 			 Fields termVect = reader.getTermVectors(i);
+			 
 	         for (String field : termVect) {
+	        	 
 	             Terms terms = termVect.terms(field);
 	             TermsEnum termsEnum = terms.iterator();
 	             Document doc = reader.document(i);
+	             
 	             while(termsEnum.next() != null){
 	            	 BytesRef term = termsEnum.term();
 	            	 String strTerm = term.utf8ToString();
@@ -129,7 +137,7 @@ public class Test_Lucene {
 	private static void printOutIndex(HashMap<String, ArrayList<String>> hmap){
 		String outputFileName = "index.txt";
 		
-		
+		//creating output string
 		String output = new String();
         for(String key: hmap.keySet()){
 	       	output += key + " -> ";
@@ -138,18 +146,18 @@ public class Test_Lucene {
 	       	output += "\n";
         }
         
-       	print(output);
-        
-        //This is so ugly!!!!!
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(outputFileName), "utf-8"))) {
-        	writer.write(output);
-        }catch(Exception e){}
-	}
-	
-	//For my personal use to mimic print from python
-	private static void print(Object object){
-		System.out.println(object);
+        //Printing to screen
+        if(PRINT_INDEX_TO_SCREEN)
+       	System.out.println(output);
+       	
+       	//Prints index to a file (based on the print boolean control)
+       	if(PRINT_INDEX_TO_FILE){
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(outputFileName), "utf-8"))) {
+            	writer.write(output);
+            }catch(Exception e){}
+       	}
+
 	}
 
 }
