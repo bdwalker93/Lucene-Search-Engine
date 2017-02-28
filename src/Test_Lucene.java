@@ -43,17 +43,14 @@ import org.apache.lucene.util.BytesRef;
 public class Test_Lucene {
 
 	public static void main(String[] args) throws IOException, ParseException{
-		 StandardAnalyzer analyzer = new StandardAnalyzer(); 			//
-		 Directory index = new RAMDirectory();							//
-		 																//	All needed variables for creating the index
-		 IndexWriterConfig config = new IndexWriterConfig(analyzer);	//
-		 IndexWriter w = new IndexWriter(index, config);				//
+		 StandardAnalyzer analyzer = new StandardAnalyzer(); 			
+		 Directory index = new RAMDirectory();																						
+		 IndexWriterConfig config = new IndexWriterConfig(analyzer);	
+		 IndexWriter w = new IndexWriter(index, config);				
 		 
-		 //This block should be replaced with code that will iterate through directories and send the files to addDoc to be inserted into index
 		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
-		 File f = new File("SampleTextDoc.txt"); 
-		 ArrayList<String> fileDoc = readFile(f);
-		 addDoc(w, fileDoc.get(0), fileDoc.get(1));
+		 File file = new File("SampleTextDoc.txt"); 
+		 addDoc(w, file);
 		 w.close();	//Close or commit IndexWriter to push changes for IndexReader to see
 		 
 		 
@@ -68,31 +65,23 @@ public class Test_Lucene {
 	
 	
 	//Will add new document to Index
-	private static void addDoc(IndexWriter w, String title, String text) throws IOException {
-		  Document doc = new Document();
-		  FieldType type = new FieldType();
-		  type.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
-		  type.setStored(true); 
-		  type.setStoreTermVectors(true);
-		  type.setTokenized(true);
-		  
-		  doc.add(new Field("title", title, type));
-		  doc.add(new Field("text", text, type));
-		  
-		  w.addDocument(doc);
-	}
-	
-	
-	/*
-	Reads all text from file and returns a 2 element list with first element being string representing title of file and second being a string holding all 
-	text that was within the document
-	*/
-	private static ArrayList<String> readFile(File f) throws IOException{
-		List<String> lines = Files.readAllLines(Paths.get(f.getPath()));
+	private static void addDoc(IndexWriter w, File file) throws IOException {
+		List<String> lines = Files.readAllLines(Paths.get(file.getPath()));
 		String text = String.join(", ", lines);
-		String title = f.getName();
-		return new ArrayList<String>(Arrays.asList(title, text));
+		String title = file.getName();
+		
+		Document doc = new Document();
+		FieldType type = new FieldType();
+		type.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
+		type.setStored(true); 
+		type.setStoreTermVectors(true);
+		type.setTokenized(true);
+		  
+		doc.add(new Field("title", title, type));
+		doc.add(new Field("text", text, type));
+		w.addDocument(doc);
 	}
+	
 	
 	/*
 	Will iterate through all documents held within the index and append to a map with key representing the term and value being all documents that have
