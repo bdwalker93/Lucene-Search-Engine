@@ -9,8 +9,10 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 
@@ -71,36 +73,25 @@ public class Indexer {
     //===================================================
     indexer.closeIndex();
 
-    //=========================================================
-    // Now search
-    //=========================================================
+    
+    
+    //dump to drive
+    Query q = new MatchAllDocsQuery();
     IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexLocation).toPath()));
     IndexSearcher searcher = new IndexSearcher(reader);
-    TopScoreDocCollector collector = TopScoreDocCollector.create(5);
-
-    s = "";
-    while (!s.equalsIgnoreCase("q")) {
-      try {
-        System.out.println("Enter the search query (q=quit):");
-        s = br.readLine();
-        if (s.equalsIgnoreCase("q")) {
-          break;
+    TopDocs t = searcher.search(q, 10);
+    ScoreDoc[] tophits = t.scoreDocs;
+    
+    try{
+        PrintWriter writer = new PrintWriter("output", "UTF-8");
+        for(int i=0; i<tophits.length; ++i){
+        	int docId = tophits[i].doc;
+        	Document d = searcher.doc(docId);
+        	writer.println(d);
         }
-        Query q = new QueryParser("contents", analyzer).parse(s);
-        searcher.search(q, collector);
-        ScoreDoc[] hits = collector.topDocs().scoreDocs;
-
-        // 4. display results
-        System.out.println("Found " + hits.length + " hits.");
-        for(int i=0;i<hits.length;++i) {
-          int docId = hits[i].doc;
-          Document d = searcher.doc(docId);
-          System.out.println((i + 1) + ". " + d.get("path") + " score=" + hits[i].score);
-        }
-
-      } catch (Exception e) {
-        System.out.println("Error searching " + s + " : " + e.getMessage());
-      }
+    }
+    catch(Exception e){
+    	
     }
 
   }
@@ -164,6 +155,7 @@ public class Indexer {
     System.out.println("************************");
 
     queue.clear();
+
   }
 
   private void addFiles(File file) {
