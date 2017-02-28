@@ -49,11 +49,15 @@ public class Test_Lucene {
 		 IndexWriter w = new IndexWriter(index, config);				
 		 
 		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
+		 
+		 //TODO:Instead of this being a single file, we will recurse through the files of a root directory
 		 File file = new File("SampleTextDoc.txt"); 
 		 addDoc(w, file);
-		 w.close();	//Close or commit IndexWriter to push changes for IndexReader to see
 		 
+		//Close or commit IndexWriter to push changes for IndexReader
+		 w.close();	
 		 
+		 //Creating our index
 		 IndexReader reader = DirectoryReader.open(index);
 		 
 		 HashMap<String, ArrayList<String>> hmap = getIndexAsMap(reader);
@@ -66,10 +70,14 @@ public class Test_Lucene {
 	
 	//Will add new document to Index
 	private static void addDoc(IndexWriter w, File file) throws IOException {
+		
+		//TODO: needs to be able to parse HTML pages here
+		//File parsing
 		List<String> lines = Files.readAllLines(Paths.get(file.getPath()));
-		String text = String.join(", ", lines);
+		String content = String.join(", ", lines);
 		String title = file.getName();
 		
+		//Document Creation
 		Document doc = new Document();
 		FieldType type = new FieldType();
 		type.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
@@ -78,7 +86,7 @@ public class Test_Lucene {
 		type.setTokenized(true);
 		  
 		doc.add(new Field("title", title, type));
-		doc.add(new Field("text", text, type));
+		doc.add(new Field("content", content, type));
 		w.addDocument(doc);
 	}
 	
