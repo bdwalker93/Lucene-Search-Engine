@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -262,7 +263,7 @@ public class SearchEngine {
 		 
 		 //Puts the metric results in a hashmap
 		HashMap<String, String> results = new HashMap<>(); 
-		results.put(INDEX_METRIC_SIZE_KEY, String.valueOf(totalIndexSize));
+		results.put(INDEX_METRIC_SIZE_KEY, String.format("%.2f", totalIndexSize));
 		results.put(INDEX_METRIC_SIZE_COUNT_KEY, String.valueOf(numOfCfsFiles));
 		results.put(INDEX_METRIC_UNIQUE_KEY, String.valueOf(hmap.size()));
 		results.put(INDEX_METRIC_DOC_CT_KEY, String.valueOf(reader.numDocs()));
@@ -304,7 +305,7 @@ public class SearchEngine {
 	public static void printMetrics(HashMap<String, String> metrics){
 		if(PRINT_METRIC_TO_SCREEN)
 		{
-			System.out.println("Total index ct: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
+			System.out.println("\nTotal index ct: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
 			System.out.println("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY));
 			System.out.println("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY));
 			System.out.println("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY));			
@@ -314,8 +315,8 @@ public class SearchEngine {
 		{
 			try 
 			{
-				Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(HUMAN_READABLE_INDEX), "utf-8"));
-				
+				FileWriter writer = new FileWriter(HUMAN_READABLE_INDEX,true); //the true will append the new data
+				writer.write("\n");
 				writer.write("Total number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + "\n");
 				writer.write("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + "\n");
 				writer.write("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY) + "\n");
