@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.json.JSONObject;
 
 
 public class SearchEngine {
@@ -54,6 +56,10 @@ public class SearchEngine {
 		 IndexWriter w = new IndexWriter(index, config);				
 		 
 		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
+		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
+		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
+		 
+		 System.out.println(jsonObj.names());
 		 
 		 //TODO:Instead of this being a single file, we will recurse through the files of a root directory (use the bookkeeping)
 		 File file = new File("SampleTextDoc.txt"); 
