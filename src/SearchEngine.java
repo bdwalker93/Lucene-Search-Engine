@@ -113,7 +113,7 @@ public class SearchEngine {
 				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
 				 
 				 try{
-				 addDoc(w, inputFile);
+				 addDoc(w, jsonObj.getString((String)nameArr.get(i)), inputFile);
 				 }catch(IllegalArgumentException e)
 				 {
 					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
@@ -124,10 +124,10 @@ public class SearchEngine {
 		 {
 			 //***TEST CODE***
 			 inputFile = new File("SampleTextDoc.txt"); 
-			 addDoc(w, inputFile);
+			 addDoc(w, "www1", inputFile);
 			 
 			 inputFile = new File("secondSampleTextDoc.txt"); 
-			 addDoc(w, inputFile);
+			 addDoc(w, "www2", inputFile);
 		 }
 
 		 
@@ -149,7 +149,7 @@ public class SearchEngine {
 	
 	
 	//Will add new document to Index
-	private static void addDoc(IndexWriter w, File file) throws IOException, IllegalArgumentException {
+	private static void addDoc(IndexWriter w, String url, File file) throws IOException, IllegalArgumentException {
 		
 		//TODO: needs to be able to parse HTML pages here
 		//File parsing
@@ -203,7 +203,7 @@ public class SearchEngine {
 		type.setStored(true);
 		type.setTokenized(false);
 		type.setStoreTermVectors(false);
-		doc.add(new Field("fileId", file.getName(),type));
+		doc.add(new Field("url", url, type));
 		
 		w.addDocument(doc);
 	}
@@ -232,10 +232,10 @@ public class SearchEngine {
 	            	 
 	            	 if (hmap.containsKey(strTerm)){
 	            		 docIdSet = hmap.get(strTerm);
-	            		 docIdSet.add(doc.get("fileId"));
+	            		 docIdSet.add(doc.get("url"));
 	            	 } else{
 	            		 docIdSet = new HashSet<String>();
-	            		 docIdSet.add(doc.get("fileId"));
+	            		 docIdSet.add(doc.get("url"));
 	            		 hmap.put(strTerm, docIdSet);
 	            	 }
 	             }
