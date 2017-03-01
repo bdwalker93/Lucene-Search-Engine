@@ -1,46 +1,29 @@
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.net.URL;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
+
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.store.SimpleFSDirectory;
@@ -66,7 +49,7 @@ public class SearchEngine {
 	final private static boolean PRINT_CONTENT_TEXT = true;
 
 	final private static boolean USE_REAL_FILES = true;
-	final private static int REAL_FILE_INDEX_LIMIT = 5;
+	final private static int REAL_FILE_INDEX_LIMIT = -1;
 	
 	final private static String REAL_INDEX = "index";
 	final private static String HUMAN_READABLE_INDEX = "index.txt";
@@ -134,16 +117,16 @@ public class SearchEngine {
 		//Close or commit IndexWriter to push changes for IndexReader
 		 w.close();	
 		 
-		 //Creating our index
-		 IndexReader reader = DirectoryReader.open(index);
-		 
-		 HashMap<String, HashSet<String>> hmap = getIndexAsMap(reader);
-		 printOutIndex(hmap);
-		 
-		 HashMap<String, String> metrics = getMetrics(hmap, reader); 
-		 printMetrics(metrics);
-
-		 reader.close();    
+//		 //Creating our index
+//		 IndexReader reader = DirectoryReader.open(index);
+//		 
+//		 HashMap<String, HashSet<String>> hmap = getIndexAsMap(reader);
+//		 printOutIndex(hmap);
+//		 
+//		 HashMap<String, String> metrics = getMetrics(hmap, reader); 
+//		 printMetrics(metrics);
+//
+//		 reader.close();    
 		 
 	}
 	
