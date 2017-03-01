@@ -41,6 +41,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
 
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
@@ -111,8 +112,9 @@ public class SearchEngine {
 		
 		//TODO: needs to be able to parse HTML pages here
 		//File parsing
-		List<String> lines = Files.readAllLines(Paths.get(file.getPath()));
-		String content = String.join(", ", lines);
+		org.jsoup.nodes.Document html = Jsoup.parse(String.join("",Files.readAllLines(file.toPath())));
+		
+		
 		String title = file.getName();
 		
 		//Document Creation
@@ -124,7 +126,7 @@ public class SearchEngine {
 		type.setTokenized(true);
 		  
 		doc.add(new Field("title", title, type));
-		doc.add(new Field("content", content, type));
+//		doc.add(new Field("content", content, type));
 		w.addDocument(doc);
 	}
 	
