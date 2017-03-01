@@ -39,7 +39,10 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 
 public class SearchEngine {
@@ -47,7 +50,9 @@ public class SearchEngine {
 	final private static boolean PRINT_INDEX_TO_SCREEN = true;
 	final private static boolean PRINT_INDEX_TO_FILE = false;
 
-	final private static boolean USE_REAL_FILES = false;
+	final private static boolean USE_REAL_FILES = true;
+	final private static int REAL_FILE_INDEX_LIMIT = 10;
+	
 
 	public static void main(String[] args) throws IOException, ParseException{
 		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
@@ -66,10 +71,13 @@ public class SearchEngine {
 		 //THIS CHECK IS ONLY FOR DEVELOPMENT
 		 if(USE_REAL_FILES)
 		 {
+			 JSONArray nameArr = jsonObj.names();
+			 
 			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
-			 for(Object path : jsonObj.names())
+			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT; i++)
 			 {
-				 inputFile = new File("WEBPAGES_RAW/" + (String)path);
+				 System.out.println("Currently Parsin: WEBPAGES_RAW/" + (String)nameArr.get(i));
+				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
 				 addDoc(w, inputFile);
 			 }
 		 }
