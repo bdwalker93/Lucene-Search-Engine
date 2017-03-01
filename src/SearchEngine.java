@@ -46,7 +46,9 @@ public class SearchEngine {
 
 	final private static boolean PRINT_INDEX_TO_SCREEN = true;
 	final private static boolean PRINT_INDEX_TO_FILE = false;
-	
+
+	final private static boolean USE_REAL_FILES = false;
+
 	public static void main(String[] args) throws IOException, ParseException{
 		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
 		 
@@ -59,13 +61,28 @@ public class SearchEngine {
 		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
 		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
 		 
-		 System.out.println(jsonObj.names());
+		 File inputFile = null;
 		 
-		 //TODO:Instead of this being a single file, we will recurse through the files of a root directory (use the bookkeeping)
-		 File file = new File("SampleTextDoc.txt"); 
-		 File file2 = new File("secondSampleTextDoc.txt"); 
-		 addDoc(w, file);
-		 addDoc(w, file2);
+		 //THIS CHECK IS ONLY FOR DEVELOPMENT
+		 if(USE_REAL_FILES)
+		 {
+			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
+			 for(Object path : jsonObj.names())
+			 {
+				 inputFile = new File("WEBPAGES_RAW/" + (String)path);
+				 addDoc(w, inputFile);
+			 }
+		 }
+		 else
+		 {
+			 //***TEST CODE***
+			 inputFile = new File("SampleTextDoc.txt"); 
+			 addDoc(w, inputFile);
+			 
+			 inputFile = new File("secondSampleTextDoc.txt"); 
+			 addDoc(w, inputFile);
+		 }
+
 		 
 		//Close or commit IndexWriter to push changes for IndexReader
 		 w.close();	
