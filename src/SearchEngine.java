@@ -316,10 +316,10 @@ public class SearchEngine {
 			{
 				Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(HUMAN_READABLE_INDEX), "utf-8"));
 				
-				writer.write("Total number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
-				writer.write("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY));
-				writer.write("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY));
-				writer.write("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY));
+				writer.write("Total number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + "\n");
+				writer.write("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + "\n");
+				writer.write("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY) + "\n");
+				writer.write("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY) + "\n");
 				
 				writer.close();
 			} 
