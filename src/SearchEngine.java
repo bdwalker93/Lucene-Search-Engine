@@ -68,69 +68,69 @@ public class SearchEngine {
 		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
 		 
 		 //TODO: This is not a persistant index. We need to find something that stores the index. http://stackoverflow.com/questions/9146604/how-to-persist-the-lucene-document-index-so-that-the-documents-do-not-need-to-be
-		 
-		 File indexFile = new File(REAL_INDEX);
-		 
-		 //Check to make sure the index directory exists
-		 if(!indexFile.isDirectory())
-		 {
-			indexFile.mkdir(); 
-		 }
-		 
-		 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
-		 IndexWriterConfig config = new IndexWriterConfig(analyzer);
-		 
-		 //Sets how we handles an existing index
-		 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-		 IndexWriter w = new IndexWriter(index, config);				
-		 
-		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
-		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
-		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
-		 
-		 File inputFile = null;
-		 
-		 //THIS CHECK IS ONLY FOR DEVELOPMENT
-		 if(USE_REAL_FILES)
-		 {
-			 JSONArray nameArr = jsonObj.names();
-			 
-			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
-			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
-			 {
-				 System.out.println("\nCurrently Parsing #" + i + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
-				 
-				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
-				 
-				 try{
-				 addDoc(w, inputFile);
-				 }catch(IllegalArgumentException e)
-				 {
-					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
-				 }
-			 }
-		 }
-		 else
-		 {
-			 //***TEST CODE***
-			 inputFile = new File("SampleTextDoc.txt"); 
-			 addDoc(w, inputFile);
-			 
-			 inputFile = new File("secondSampleTextDoc.txt"); 
-			 addDoc(w, inputFile);
-		 }
-
-		 
-		//Close or commit IndexWriter to push changes for IndexReader
-		 w.close();	
-		 
-		 //Creating our index
-		 IndexReader reader = DirectoryReader.open(index);
-		 
-		 HashMap<String, ArrayList<String>> hmap = getIndexAsMap(reader);
-		 printOutIndex(hmap);
-         
-		 reader.close();    
+		getMetrics(); 
+//		 File indexFile = new File(REAL_INDEX);
+//		 
+//		 //Check to make sure the index directory exists
+//		 if(!indexFile.isDirectory())
+//		 {
+//			indexFile.mkdir(); 
+//		 }
+//		 
+//		 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
+//		 IndexWriterConfig config = new IndexWriterConfig(analyzer);
+//		 
+//		 //Sets how we handles an existing index
+//		 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+//		 IndexWriter w = new IndexWriter(index, config);				
+//		 
+//		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
+//		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
+//		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
+//		 
+//		 File inputFile = null;
+//		 
+//		 //THIS CHECK IS ONLY FOR DEVELOPMENT
+//		 if(USE_REAL_FILES)
+//		 {
+//			 JSONArray nameArr = jsonObj.names();
+//			 
+//			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
+//			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
+//			 {
+//				 System.out.println("\nCurrently Parsing #" + i + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
+//				 
+//				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
+//				 
+//				 try{
+//				 addDoc(w, inputFile);
+//				 }catch(IllegalArgumentException e)
+//				 {
+//					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
+//				 }
+//			 }
+//		 }
+//		 else
+//		 {
+//			 //***TEST CODE***
+//			 inputFile = new File("SampleTextDoc.txt"); 
+//			 addDoc(w, inputFile);
+//			 
+//			 inputFile = new File("secondSampleTextDoc.txt"); 
+//			 addDoc(w, inputFile);
+//		 }
+//
+//		 
+//		//Close or commit IndexWriter to push changes for IndexReader
+//		 w.close();	
+//		 
+//		 //Creating our index
+//		 IndexReader reader = DirectoryReader.open(index);
+//		 
+//		 HashMap<String, ArrayList<String>> hmap = getIndexAsMap(reader);
+//		 printOutIndex(hmap);
+//         
+//		 reader.close();    
 		 
 	}
 	
@@ -229,8 +229,21 @@ public class SearchEngine {
 	
 	private static void getMetrics()
 	{
-//		long fileSizeInKB = "this needs to be all of our cfs files" / 1024;
-
+		double totalIndexSize = 0;
+		int numOfCfsFiles = 0;
+		
+		File indexFile = new File(REAL_INDEX);
+		 	
+		 for(File file : indexFile.listFiles())
+		 {
+			 if(file.getName().endsWith(".cfs"))
+			 {
+				 numOfCfsFiles++;
+				 totalIndexSize += file.length() / (double)1024 / 1024;
+			 }
+		 }
+		
+		 System.out.println("Total index ct: " + numOfCfsFiles + " -- Total index size: " + totalIndexSize);
 	}
 	
 	//Iterates through map and prints out as a postings as seen in lectures
