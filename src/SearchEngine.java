@@ -32,6 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
+import org.omg.CORBA.TIMEOUT;
 
 //import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
@@ -49,7 +50,7 @@ public class SearchEngine {
 	final private static boolean PRINT_CONTENT_TEXT = true;
 
 	final private static boolean USE_REAL_FILES = true;
-	final private static int REAL_FILE_INDEX_LIMIT = -1;
+	final private static int REAL_FILE_INDEX_LIMIT = 1000;
 	
 	final private static String REAL_INDEX = "index";
 	final private static String HUMAN_READABLE_INDEX = "index.txt";
@@ -58,6 +59,8 @@ public class SearchEngine {
 	final private static String INDEX_METRIC_SIZE_COUNT_KEY = "indexFileCount";
 	final private static String INDEX_METRIC_UNIQUE_KEY = "uniqueKeyCount";
 	final private static String INDEX_METRIC_DOC_CT_KEY = "numberOfDocsRead";
+	final private static String INDEX_METRIC_UNPARSABLE_CT = "numberOfUnparsableFiles";
+	
 	
 	public static void main(String[] args) throws IOException, ParseException{
 		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
@@ -83,6 +86,7 @@ public class SearchEngine {
 		 
 		 File inputFile = null;
 		 
+		 int numberOfUnparsableFiles = 0;
 		 //THIS CHECK IS ONLY FOR DEVELOPMENT
 		 if(USE_REAL_FILES)
 		 {
@@ -91,48 +95,63 @@ public class SearchEngine {
 			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
 			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
 			 {
-				 System.out.println("\nCurrently Parsing #" + i + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
+				 System.out.println("\nCurrently Parsing #" + (i + 1) + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
 				 
 				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
 				 
 				 try{
-				 addDoc(w, jsonObj.getString((String)nameArr.get(i)), inputFile);
+					 
+					 if(addDoc(w, jsonObj.getString((String)nameArr.get(i)), inputFile) == -1)
+					 {
+						 numberOfUnparsableFiles++;
+					 }
 				 }catch(IllegalArgumentException e)
 				 {
 					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
+					 numberOfUnparsableFiles++;
 				 }
 			 }
 		 }
 		 else
 		 {
 			 //***TEST CODE***
-			 inputFile = new File("SampleTextDoc.txt"); 
-			 addDoc(w, "www1", inputFile);
+//			 inputFile = new File("SampleTextDoc.txt"); 
+//			 addDoc(w, "www1", inputFile);
+//			 
+//			 inputFile = new File("secondSampleTextDoc.txt"); 
+//			 addDoc(w, "www2", inputFile);
 			 
-			 inputFile = new File("secondSampleTextDoc.txt"); 
+			 inputFile = new File("WEBPAGES_RAW/0/189"); 
 			 addDoc(w, "www2", inputFile);
 		 }
 
 		 
 		//Close or commit IndexWriter to push changes for IndexReader
-		 w.close();	
+		 w.close();
 		 
-//		 //Creating our index
-//		 IndexReader reader = DirectoryReader.open(index);
-//		 
-//		 HashMap<String, HashSet<String>> hmap = getIndexAsMap(reader);
-//		 printOutIndex(hmap);
-//		 
-//		 HashMap<String, String> metrics = getMetrics(hmap, reader); 
-//		 printMetrics(metrics);
-//
-//		 reader.close();    
+		 //fake timeout
+		 for(int i = 0; i < 1000; i++)
+			 System.out.print("a");
+		 
+		 //Creating our index
+		 IndexReader reader = DirectoryReader.open(index);
+		 
+		 HashMap<String, HashSet<String>> hmap = getIndexAsMap(reader);
+		 printOutIndex(hmap);
+		 
+		 HashMap<String, String> metrics = getMetrics(hmap, reader); 
+		 
+		 //add the bad file metric... should probably just make this map global
+		 metrics.put(INDEX_METRIC_UNPARSABLE_CT, String.valueOf(numberOfUnparsableFiles));
+		 printMetrics(metrics);
+
+		 reader.close();    
 		 
 	}
 	
 	
 	//Will add new document to Index
-	private static void addDoc(IndexWriter w, String url, File file) throws IOException, IllegalArgumentException {
+	private static int addDoc(IndexWriter w, String url, File file) throws IOException, IllegalArgumentException {
 		
 		//TODO: needs to be able to parse HTML pages here
 		//File parsing
@@ -140,7 +159,7 @@ public class SearchEngine {
 		
 		//If we cant parse the html
 		if(html == null)
-			return;
+			return -1;
 		
 		if(PRINT_CONTENT_STRING)
 			System.out.println("***This is the body***\n" + String.join("",Files.readAllLines(file.toPath())));
@@ -181,14 +200,21 @@ public class SearchEngine {
 		if(content != null && !content.isEmpty())
 			doc.add(new Field("content", content, type));
 		
-		//fileID field should not be used for finding terms within document, only for uniquely identifying this doc amoungst others in index
-		type = new FieldType();
-		type.setStored(true);
-		type.setTokenized(false);
-		type.setStoreTermVectors(false);
-		doc.add(new Field("url", url, type));
+		//Need to make sure we have content before attempting to add a link to a document
+		if(doc.getFields().size() > 0)
+		{
+			//fileID field should not be used for finding terms within document, only for uniquely identifying this doc amoungst others in index
+			type = new FieldType();
+			type.setStored(true);
+			type.setTokenized(false);
+			type.setStoreTermVectors(false);
+			doc.add(new Field("url", url, type));
+			
+			w.addDocument(doc);
+		}
+
 		
-		w.addDocument(doc);
+		return 0;
 	}
 	
 	
@@ -288,10 +314,12 @@ public class SearchEngine {
 	public static void printMetrics(HashMap<String, String> metrics){
 		if(PRINT_METRIC_TO_SCREEN)
 		{
-			System.out.println("\nTotal index ct: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
-			System.out.println("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) +  " MB");
+			System.out.println("\nTotal number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
+			System.out.println("Size of the complete index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) +  " MB");
 			System.out.println("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY));
-			System.out.println("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY));			
+			System.out.println("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY));
+			System.out.println("Total number of unparsable documents: " + metrics.get(INDEX_METRIC_UNPARSABLE_CT) );
+
 		}
 	
 		if(PRINT_METRIC_TO_FILE)
@@ -301,9 +329,10 @@ public class SearchEngine {
 				FileWriter writer = new FileWriter(HUMAN_READABLE_INDEX, true); //the true will append the new data
 				writer.write("\n");
 				writer.write("Total number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + "\n");
-				writer.write("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + " MB\n");
+				writer.write("Size of the complete index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + " MB\n");
 				writer.write("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY) + "\n");
-				writer.write("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY) + "\n");
+				writer.write("Total number of documents encountered: " + metrics.get(INDEX_METRIC_DOC_CT_KEY) + "\n");
+				writer.write("Total number of unparsable documents: " + metrics.get(INDEX_METRIC_UNPARSABLE_CT) + "\n");
 				
 				writer.close();
 			} 
