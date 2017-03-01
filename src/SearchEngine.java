@@ -35,10 +35,10 @@ import org.jsoup.nodes.Element;
 
 public class SearchEngine {
 
-	final private static boolean PRINT_INDEX_TO_SCREEN = true;
-	final private static boolean PRINT_INDEX_TO_FILE = true;
+	final private static boolean PRINT_INDEX_TO_SCREEN = false;
+	final private static boolean PRINT_INDEX_TO_FILE = false;
 	final private static boolean PRINT_METRIC_TO_SCREEN = true;
-	final private static boolean PRINT_METRIC_TO_FILE = true;
+	final private static boolean PRINT_METRIC_TO_FILE = false;
 	
 	final private static boolean GET_CONTENT_URL = false;
 	final private static boolean PRINT_CONTENT_STRING = false;
@@ -124,6 +124,9 @@ public class SearchEngine {
 		 
 		//Close or commit IndexWriter to push changes for IndexReader
 		 w.close();
+		 
+		 
+		 System.out.println("***INDEXING COMPLETE***");
 		 
 		 //Creating our index
 		 IndexReader reader = DirectoryReader.open(index);
@@ -222,6 +225,9 @@ public class SearchEngine {
 		 
 		 for(int i=0; i<reader.numDocs(); i++){
 			 Fields termVect = reader.getTermVectors(i);
+		
+			 if(termVect == null)
+				 continue;
 			 
 	         for (String field : termVect) {
 	        	 
