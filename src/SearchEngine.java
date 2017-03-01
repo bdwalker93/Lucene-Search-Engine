@@ -275,9 +275,9 @@ public class SearchEngine {
 	private static void printOutIndex(HashMap<String, HashSet<String>> hmap){
 		
 		try{
-			Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(HUMAN_READABLE_INDEX), "utf-8"));
+			//False overwrites old data
+			FileWriter writer = new FileWriter(HUMAN_READABLE_INDEX, false); 
 		
-	
 			//creating output string
 			String output = new String();
 	        for(String key: hmap.keySet()){
@@ -315,7 +315,7 @@ public class SearchEngine {
 		{
 			try 
 			{
-				FileWriter writer = new FileWriter(HUMAN_READABLE_INDEX,true); //the true will append the new data
+				FileWriter writer = new FileWriter(HUMAN_READABLE_INDEX, true); //the true will append the new data
 				writer.write("\n");
 				writer.write("Total number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + "\n");
 				writer.write("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + "\n");
