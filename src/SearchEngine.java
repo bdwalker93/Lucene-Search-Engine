@@ -88,51 +88,51 @@ public class SearchEngine {
 		 }
 		 
 		 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
-//		 IndexWriterConfig config = new IndexWriterConfig(analyzer);
-//		 
-//		 //Sets how we handles an existing index
-//		 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-//		 IndexWriter w = new IndexWriter(index, config);				
-//		 
-//		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
-//		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
-//		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
-//		 
-//		 File inputFile = null;
-//		 
-//		 //THIS CHECK IS ONLY FOR DEVELOPMENT
-//		 if(USE_REAL_FILES)
-//		 {
-//			 JSONArray nameArr = jsonObj.names();
-//			 
-//			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
-//			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
-//			 {
-//				 System.out.println("\nCurrently Parsing #" + i + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
-//				 
-//				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
-//				 
-//				 try{
-//				 addDoc(w, inputFile);
-//				 }catch(IllegalArgumentException e)
-//				 {
-//					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
-//				 }
-//			 }
-//		 }
-//		 else
-//		 {
-//			 //***TEST CODE***
-//			 inputFile = new File("SampleTextDoc.txt"); 
-//			 addDoc(w, inputFile);
-//			 
-//			 inputFile = new File("secondSampleTextDoc.txt"); 
-//			 addDoc(w, inputFile);
-//		 }
-//
-//		 
-//		//Close or commit IndexWriter to push changes for IndexReader
-//		 w.close();	
+		 IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		 
+		 //Sets how we handles an existing index
+		 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+		 IndexWriter w = new IndexWriter(index, config);				
+		 
+		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
+		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
+		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
+		 
+		 File inputFile = null;
+		 
+		 //THIS CHECK IS ONLY FOR DEVELOPMENT
+		 if(USE_REAL_FILES)
+		 {
+			 JSONArray nameArr = jsonObj.names();
+			 
+			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
+			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
+			 {
+				 System.out.println("\nCurrently Parsing #" + i + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
+				 
+				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
+				 
+				 try{
+				 addDoc(w, inputFile);
+				 }catch(IllegalArgumentException e)
+				 {
+					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
+				 }
+			 }
+		 }
+		 else
+		 {
+			 //***TEST CODE***
+			 inputFile = new File("SampleTextDoc.txt"); 
+			 addDoc(w, inputFile);
+			 
+			 inputFile = new File("secondSampleTextDoc.txt"); 
+			 addDoc(w, inputFile);
+		 }
+
+		 
+		//Close or commit IndexWriter to push changes for IndexReader
+		 w.close();	
 		 
 		 //Creating our index
 		 IndexReader reader = DirectoryReader.open(index);
@@ -306,7 +306,7 @@ public class SearchEngine {
 		if(PRINT_METRIC_TO_SCREEN)
 		{
 			System.out.println("\nTotal index ct: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
-			System.out.println("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY));
+			System.out.println("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) +  " MB");
 			System.out.println("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY));
 			System.out.println("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY));			
 		}
@@ -318,7 +318,7 @@ public class SearchEngine {
 				FileWriter writer = new FileWriter(HUMAN_READABLE_INDEX, true); //the true will append the new data
 				writer.write("\n");
 				writer.write("Total number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + "\n");
-				writer.write("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + "\n");
+				writer.write("Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + " MB\n");
 				writer.write("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY) + "\n");
 				writer.write("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY) + "\n");
 				
