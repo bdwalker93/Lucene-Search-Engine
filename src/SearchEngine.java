@@ -10,9 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -45,13 +47,13 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+//import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 
 public class SearchEngine {
 
 	final private static boolean PRINT_INDEX_TO_SCREEN = true;
-	final private static boolean PRINT_INDEX_TO_FILE = false;
+	final private static boolean PRINT_INDEX_TO_FILE = true;
 	
 	final private static boolean GET_CONTENT_URL = false;
 	final private static boolean PRINT_CONTENT_STRING = false;
@@ -59,7 +61,7 @@ public class SearchEngine {
 	final private static boolean PRINT_CONTENT_TEXT = true;
 
 	final private static boolean USE_REAL_FILES = true;
-	final private static int REAL_FILE_INDEX_LIMIT = -1;
+	final private static int REAL_FILE_INDEX_LIMIT = 5;
 	
 	final private static String REAL_INDEX = "index";
 	final private static String HUMAN_READABLE_INDEX = "index.txt";
@@ -68,69 +70,71 @@ public class SearchEngine {
 		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
 		 
 		 //TODO: This is not a persistant index. We need to find something that stores the index. http://stackoverflow.com/questions/9146604/how-to-persist-the-lucene-document-index-so-that-the-documents-do-not-need-to-be
-		getMetrics(); 
-//		 File indexFile = new File(REAL_INDEX);
-//		 
-//		 //Check to make sure the index directory exists
-//		 if(!indexFile.isDirectory())
-//		 {
-//			indexFile.mkdir(); 
-//		 }
-//		 
-//		 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
-//		 IndexWriterConfig config = new IndexWriterConfig(analyzer);
-//		 
-//		 //Sets how we handles an existing index
-//		 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-//		 IndexWriter w = new IndexWriter(index, config);				
-//		 
-//		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
-//		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
-//		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
-//		 
-//		 File inputFile = null;
-//		 
-//		 //THIS CHECK IS ONLY FOR DEVELOPMENT
-//		 if(USE_REAL_FILES)
-//		 {
-//			 JSONArray nameArr = jsonObj.names();
-//			 
-//			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
-//			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
-//			 {
-//				 System.out.println("\nCurrently Parsing #" + i + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
-//				 
-//				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
-//				 
-//				 try{
-//				 addDoc(w, inputFile);
-//				 }catch(IllegalArgumentException e)
-//				 {
-//					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
-//				 }
-//			 }
-//		 }
-//		 else
-//		 {
-//			 //***TEST CODE***
-//			 inputFile = new File("SampleTextDoc.txt"); 
-//			 addDoc(w, inputFile);
-//			 
-//			 inputFile = new File("secondSampleTextDoc.txt"); 
-//			 addDoc(w, inputFile);
-//		 }
-//
-//		 
-//		//Close or commit IndexWriter to push changes for IndexReader
-//		 w.close();	
-//		 
-//		 //Creating our index
-//		 IndexReader reader = DirectoryReader.open(index);
-//		 
-//		 HashMap<String, ArrayList<String>> hmap = getIndexAsMap(reader);
-//		 printOutIndex(hmap);
-//         
-//		 reader.close();    
+		
+		 File indexFile = new File(REAL_INDEX);
+		 
+		 //Check to make sure the index directory exists
+		 if(!indexFile.isDirectory())
+		 {
+			indexFile.mkdir(); 
+		 }
+		 
+		 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
+		 IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		 
+		 //Sets how we handles an existing index
+		 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+		 IndexWriter w = new IndexWriter(index, config);				
+		 
+		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
+		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
+		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
+		 
+		 File inputFile = null;
+		 
+		 //THIS CHECK IS ONLY FOR DEVELOPMENT
+		 if(USE_REAL_FILES)
+		 {
+			 JSONArray nameArr = jsonObj.names();
+			 
+			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
+			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
+			 {
+				 System.out.println("\nCurrently Parsing #" + i + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
+				 
+				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
+				 
+				 try{
+				 addDoc(w, inputFile);
+				 }catch(IllegalArgumentException e)
+				 {
+					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
+				 }
+			 }
+		 }
+		 else
+		 {
+			 //***TEST CODE***
+			 inputFile = new File("SampleTextDoc.txt"); 
+			 addDoc(w, inputFile);
+			 
+			 inputFile = new File("secondSampleTextDoc.txt"); 
+			 addDoc(w, inputFile);
+		 }
+
+		 
+		//Close or commit IndexWriter to push changes for IndexReader
+		 w.close();	
+		 
+		 //Creating our index
+		 IndexReader reader = DirectoryReader.open(index);
+		 
+		 HashMap<String, HashSet<String>> hmap = getIndexAsMap(reader);
+		 printOutIndex(hmap);
+		 
+		 getMetrics(hmap, reader); 
+         
+		 reader.close();    
 		 
 	}
 	
@@ -185,7 +189,12 @@ public class SearchEngine {
 		if(content != null && !content.isEmpty())
 			doc.add(new Field("content", content, type));
 		
-		doc.add(new Field("fileId", file.getName(), type));
+		//fileID field should not be used for finding terms within document, only for uniquely identifying this doc amoungst others in index
+		type = new FieldType();
+		type.setStored(true);
+		type.setTokenized(false);
+		type.setStoreTermVectors(false);
+		doc.add(new Field("fileId", file.getName(),type));
 		
 		w.addDocument(doc);
 	}
@@ -195,9 +204,9 @@ public class SearchEngine {
 	Will iterate through all documents held within the index and append to a map with key representing the term and value being all documents that have
 	the term within it. This will assume terms can be within any field even the title of the document
 	*/
-	private static HashMap<String, ArrayList<String>> getIndexAsMap(IndexReader reader) throws IOException{
-		 HashMap<String, ArrayList<String>> hmap = new HashMap<String, ArrayList<String>>();
-		 ArrayList<String> list;
+	private static HashMap<String, HashSet<String>> getIndexAsMap(IndexReader reader) throws IOException{
+		 HashMap<String, HashSet<String>> hmap = new HashMap<String, HashSet<String>>();
+		 HashSet<String> docIdSet;
 		 
 		 for(int i=0; i<reader.numDocs(); i++){
 			 Fields termVect = reader.getTermVectors(i);
@@ -213,12 +222,12 @@ public class SearchEngine {
 	            	 String strTerm = term.utf8ToString();
 	            	 
 	            	 if (hmap.containsKey(strTerm)){
-	            		 list = hmap.get(strTerm);
-	            		 list.add(doc.get("fileId"));
+	            		 docIdSet = hmap.get(strTerm);
+	            		 docIdSet.add(doc.get("fileId"));
 	            	 } else{
-	            		 list = new ArrayList<String>();
-	            		 list.add(doc.get("fileId"));
-	            		 hmap.put(strTerm, list);
+	            		 docIdSet = new HashSet<String>();
+	            		 docIdSet.add(doc.get("fileId"));
+	            		 hmap.put(strTerm, docIdSet);
 	            	 }
 	             }
 	         }
@@ -227,7 +236,7 @@ public class SearchEngine {
 		 return hmap;
 	}
 	
-	private static void getMetrics()
+	private static void getMetrics(HashMap<String, HashSet<String>> hmap, IndexReader reader)
 	{
 		double totalIndexSize = 0;
 		int numOfCfsFiles = 0;
@@ -244,31 +253,42 @@ public class SearchEngine {
 		 }
 		
 		 System.out.println("Total index ct: " + numOfCfsFiles + " -- Total index size: " + totalIndexSize);
+		 
+		 System.out.println("Total Unique Terms: " + hmap.size());
+		 System.out.println("Total number of documents: " + reader.numDocs());
 	}
 	
 	//Iterates through map and prints out as a postings as seen in lectures
-	private static void printOutIndex(HashMap<String, ArrayList<String>> hmap){
+	private static void printOutIndex(HashMap<String, HashSet<String>> hmap){
 		
-		//creating output string
-		String output = new String();
-        for(String key: hmap.keySet()){
-	       	output += key + " -> ";
-	       	String result = String.join(", ", hmap.get(key));
-	       	output += result;
-	       	output += "\n";
-        }
+		try{
+			Writer writer =  null;
+			writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(HUMAN_READABLE_INDEX), "utf-8"));
+		
+	
+			//creating output string
+			String output = new String();
+	        for(String key: hmap.keySet()){
+		       	output = key + " -> " + String.join(", ", hmap.get(key));
+		       	
+		        //Printing to screen
+		        if(PRINT_INDEX_TO_SCREEN)
+		        	System.out.println(output);
+		        
+		        if(PRINT_INDEX_TO_FILE){
+					try {
+						writer.write(output + "\n");
+					} catch (IOException e){}	
+		        }
+		       	
+	        }
+	        
+	        writer.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         
-        //Printing to screen
-        if(PRINT_INDEX_TO_SCREEN)
-       	System.out.println(output);
-       	
-       	//Prints index to a file (based on the print boolean control)
-       	if(PRINT_INDEX_TO_FILE){
-            try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(HUMAN_READABLE_INDEX), "utf-8"))) {
-            	writer.write(output);
-            }catch(Exception e){}
-       	}
 
 	}
 
