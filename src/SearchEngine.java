@@ -129,10 +129,6 @@ public class SearchEngine {
 		//Close or commit IndexWriter to push changes for IndexReader
 		 w.close();
 		 
-		 //fake timeout
-		 for(int i = 0; i < 1000; i++)
-			 System.out.print("a");
-		 
 		 //Creating our index
 		 IndexReader reader = DirectoryReader.open(index);
 		 
@@ -211,10 +207,12 @@ public class SearchEngine {
 			doc.add(new Field("url", url, type));
 			
 			w.addDocument(doc);
+			
+			return 0;
 		}
 
 		
-		return 0;
+		return -1;
 	}
 	
 	
