@@ -48,10 +48,10 @@ import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 public class SearchEngine {
 
 	final private static boolean PRINT_INDEX_TO_SCREEN = true;
-	final private static boolean PRINT_INDEX_TO_FILE = false;
+	final private static boolean PRINT_INDEX_TO_FILE = true;
 
 	final private static boolean USE_REAL_FILES = true;
-	final private static int REAL_FILE_INDEX_LIMIT = 10;
+	final private static int REAL_FILE_INDEX_LIMIT = 100;
 	
 
 	public static void main(String[] args) throws IOException, ParseException{
@@ -76,7 +76,7 @@ public class SearchEngine {
 			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
 			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT; i++)
 			 {
-				 System.out.println("Currently Parsin: WEBPAGES_RAW/" + (String)nameArr.get(i));
+				 System.out.println("Currently Parsing: WEBPAGES_RAW/" + (String)nameArr.get(i));
 				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
 				 addDoc(w, inputFile);
 			 }
