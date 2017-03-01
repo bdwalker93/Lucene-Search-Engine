@@ -54,6 +54,8 @@ public class SearchEngine {
 
 	final private static boolean PRINT_INDEX_TO_SCREEN = true;
 	final private static boolean PRINT_INDEX_TO_FILE = true;
+	final private static boolean PRINT_METRIC_TO_SCREEN = true;
+	final private static boolean PRINT_METRIC_TO_FILE = true;
 	
 	final private static boolean GET_CONTENT_URL = false;
 	final private static boolean PRINT_CONTENT_STRING = false;
@@ -66,11 +68,14 @@ public class SearchEngine {
 	final private static String REAL_INDEX = "index";
 	final private static String HUMAN_READABLE_INDEX = "index.txt";
 	
+	final private static String INDEX_METRIC_SIZE_KEY = "";
+	final private static String INDEX_METRIC_SIZE_COUNT_KEY = ""
+	final private static String INDEX_METRIC_UNIQUE_KEY = ""
+	final private static String INDEX_METRIC_DOC_CT_KEY = ""
+	
 	public static void main(String[] args) throws IOException, ParseException{
 		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
-		 
-		 //TODO: This is not a persistant index. We need to find something that stores the index. http://stackoverflow.com/questions/9146604/how-to-persist-the-lucene-document-index-so-that-the-documents-do-not-need-to-be
-		
+		 		
 		 File indexFile = new File(REAL_INDEX);
 		 
 		 //Check to make sure the index directory exists
@@ -132,8 +137,9 @@ public class SearchEngine {
 		 HashMap<String, HashSet<String>> hmap = getIndexAsMap(reader);
 		 printOutIndex(hmap);
 		 
-		 getMetrics(hmap, reader); 
-         
+		 ArrayList<String> metrics = getMetrics(hmap, reader); 
+		 printMetrics(metrics);
+
 		 reader.close();    
 		 
 	}
@@ -236,7 +242,7 @@ public class SearchEngine {
 		 return hmap;
 	}
 	
-	private static void getMetrics(HashMap<String, HashSet<String>> hmap, IndexReader reader)
+	private static HashMap<String, String> getMetrics(HashMap<String, HashSet<String>> hmap, IndexReader reader)
 	{
 		double totalIndexSize = 0;
 		int numOfCfsFiles = 0;
@@ -251,11 +257,14 @@ public class SearchEngine {
 				 totalIndexSize += file.length() / (double)1024 / 1024;
 			 }
 		 }
-		
-		 System.out.println("Total index ct: " + numOfCfsFiles + " -- Total index size: " + totalIndexSize);
 		 
-		 System.out.println("Total Unique Terms: " + hmap.size());
-		 System.out.println("Total number of documents: " + reader.numDocs());
+		HashMap<String, String> results = new HashMap<>(); 
+		results.put(INDEX_METRIC_SIZE_KEY, totalIndexSize);
+		results.put(INDEX_METRIC_SIZE_COUNT_KEY, totalIndexSize);
+		results.put(INDEX_METRIC_UNIQUE_KEY, hmap.size());
+		results.put(INDEX_METRIC_DOC_CT_KEY, reader.numDocs());
+
+		return results;
 	}
 	
 	//Iterates through map and prints out as a postings as seen in lectures
@@ -288,8 +297,12 @@ public class SearchEngine {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-        
-
+	}
+	
+	public void printMetrics(HashMap<String, String> metrics){
+		 System.out.println("Total index ct: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + " -- Total index size: " + metrics.get(INDEX_METRIC_SIZE_KEY));
+		 System.out.println("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY));
+		 System.out.println("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY));
 	}
 
 }
