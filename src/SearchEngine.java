@@ -47,10 +47,10 @@ public class SearchEngine {
 	final private static boolean GET_CONTENT_URL = false;
 	final private static boolean PRINT_CONTENT_STRING = false;
 	final private static boolean PRINT_CONTENT_BODY = false;
-	final private static boolean PRINT_CONTENT_TEXT = true;
+	final private static boolean PRINT_CONTENT_TEXT = false;
 
 	final private static boolean USE_REAL_FILES = true;
-	final private static int REAL_FILE_INDEX_LIMIT = 500;
+	final private static int REAL_FILE_INDEX_LIMIT = -1;
 	
 	final private static String REAL_INDEX = "index";
 	final private static String HUMAN_READABLE_INDEX = "index.txt";
@@ -312,7 +312,7 @@ public class SearchEngine {
 	public static void printMetrics(HashMap<String, String> metrics){
 		if(PRINT_METRIC_TO_SCREEN)
 		{
-			System.out.println("\nTotal number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
+			System.out.println("\nTotal number of flat (.cfs files) files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
 			System.out.println("Size of the complete index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) +  " MB");
 			System.out.println("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY));
 			System.out.println("Total number of documents: " + metrics.get(INDEX_METRIC_DOC_CT_KEY));
