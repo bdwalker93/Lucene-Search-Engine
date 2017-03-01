@@ -50,7 +50,7 @@ public class SearchEngine {
 	final private static boolean PRINT_CONTENT_TEXT = true;
 
 	final private static boolean USE_REAL_FILES = true;
-	final private static int REAL_FILE_INDEX_LIMIT = 1000;
+	final private static int REAL_FILE_INDEX_LIMIT = 500;
 	
 	final private static String REAL_INDEX = "index";
 	final private static String HUMAN_READABLE_INDEX = "index.txt";
@@ -93,7 +93,7 @@ public class SearchEngine {
 			 JSONArray nameArr = jsonObj.names();
 			 
 			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
-			 for(int i = 0; i < nameArr.length() && i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1; i++)
+			 for(int i = 0; i < nameArr.length() && (i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1); i++)
 			 {
 				 System.out.println("\nCurrently Parsing #" + (i + 1) + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
 				 
@@ -326,7 +326,7 @@ public class SearchEngine {
 			{
 				FileWriter writer = new FileWriter(HUMAN_READABLE_INDEX, true); //the true will append the new data
 				writer.write("\n");
-				writer.write("Total number of flat files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + "\n");
+				writer.write("Total number of flat files (.cfs files) storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY) + "\n");
 				writer.write("Size of the complete index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) + " MB\n");
 				writer.write("Total Unique Terms: " + metrics.get(INDEX_METRIC_UNIQUE_KEY) + "\n");
 				writer.write("Total number of documents encountered: " + metrics.get(INDEX_METRIC_DOC_CT_KEY) + "\n");
