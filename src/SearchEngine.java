@@ -57,76 +57,28 @@ public class SearchEngine {
 	final private static String INDEX_METRIC_DOC_CT_KEY = "numberOfDocsRead";
 	final private static String INDEX_METRIC_UNPARSABLE_CT = "numberOfUnparsableFiles";
 	
-	
-	public static void main(String[] args) throws IOException, ParseException{
-		 StandardAnalyzer analyzer = new StandardAnalyzer(); 
-		 		
-		 File indexFile = new File(REAL_INDEX);
-		 
-		 //Check to make sure the index directory exists
-		 if(!indexFile.isDirectory())
-		 {
-			indexFile.mkdir(); 
-		 }
-		 
-		 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
-		 IndexWriterConfig config = new IndexWriterConfig(analyzer);
-		 
-		 //Sets how we handles an existing index
-		 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-		 IndexWriter w = new IndexWriter(index, config);				
-		 
-		 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
-		 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
-		 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
-		 
-		 File inputFile = null;
-		 
-		 int numberOfUnparsableFiles = 0;
-		 //THIS CHECK IS ONLY FOR DEVELOPMENT
-		 if(USE_REAL_FILES)
-		 {
-			 JSONArray nameArr = jsonObj.names();
-			 
-			 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
-			 for(int i = 0; i < nameArr.length() && (i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1); i++)
-			 {
-				 System.out.println("\nCurrently Parsing #" + (i + 1) + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
-				 
-				 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
-				 
-				 try{
-					 
-					 if(addDoc(w, jsonObj.getString((String)nameArr.get(i)), inputFile) == -1)
-					 {
-						 numberOfUnparsableFiles++;
-					 }
-				 }catch(IllegalArgumentException e)
-				 {
-					 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
-					 numberOfUnparsableFiles++;
-				 }
-			 }
-		 }
-		 else
-		 {
-			 //***TEST CODE***
-//			 inputFile = new File("SampleTextDoc.txt"); 
-//			 addDoc(w, "www1", inputFile);
-//			 
-//			 inputFile = new File("secondSampleTextDoc.txt"); 
-//			 addDoc(w, "www2", inputFile);
-			 
-			 inputFile = new File("WEBPAGES_RAW/0/189"); 
-			 addDoc(w, "www2", inputFile);
-		 }
+	private enum operation { INDEX, SEARCH }  
 
+	
+	public static void main(String[] args) throws IOException, ParseException{		 		
+		SearchEngine se = new SearchEngine();
+		operation op = operation.INDEX;
 		 
-		//Close or commit IndexWriter to push changes for IndexReader
-		 w.close();
 		 
+		 switch(op){
+			 case INDEX:
+				 indexCorpus(REAL_INDEX);
+				 System.out.println("***INDEXING COMPLETE***");
+				 break;
+				 
+			 case SEARCH:
+				 break;
+				 
+			default:
+				System.out.println("UNKNOWN OPERATION");
+			 
+		 }
 		 
-		 System.out.println("***INDEXING COMPLETE***");
 		 
 		 //Creating our index
 		 IndexReader reader = DirectoryReader.open(index);
@@ -142,6 +94,80 @@ public class SearchEngine {
 
 		 reader.close();    
 		 
+	}
+	
+	public void indexCorpus(String indexLocation){
+		try{
+			StandardAnalyzer analyzer = new StandardAnalyzer();  
+			File indexFile = new File(indexLocation);
+			 
+			 //Check to make sure the index directory exists
+			 if(!indexFile.isDirectory())
+			 {
+				indexFile.mkdir(); 
+			 }
+			 
+			 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
+			 IndexWriterConfig config = new IndexWriterConfig(analyzer);
+			 
+			 //Sets how we handles an existing index
+			 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+			 IndexWriter w = new IndexWriter(index, config);				
+			 
+			 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
+			 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
+			 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
+			 
+			 File inputFile = null;
+			 
+			 // Metric field
+			 int numberOfUnparsableFiles = 0;
+			 
+			 //THIS CHECK IS ONLY FOR DEVELOPMENT
+			 if(USE_REAL_FILES)
+			 {
+				 JSONArray nameArr = jsonObj.names();
+				 
+				 // Traverse our bookeeping JSON file that has all of the paths of the files for us to index
+				 for(int i = 0; i < nameArr.length() && (i < REAL_FILE_INDEX_LIMIT || REAL_FILE_INDEX_LIMIT == -1); i++)
+				 {
+					 System.out.println("\nCurrently Parsing #" + (i + 1) + " : WEBPAGES_RAW/" + (String)nameArr.get(i) + (GET_CONTENT_URL ? " -- This is the URL: " + jsonObj.getString((String)nameArr.get(i)) : ""));
+					 
+					 inputFile = new File("WEBPAGES_RAW/" + (String)nameArr.get(i));
+					 
+					 try{
+						 
+						 if(addDoc(w, jsonObj.getString((String)nameArr.get(i)), inputFile) == -1)
+						 {
+							 numberOfUnparsableFiles++;
+						 }
+					 }catch(IllegalArgumentException e)
+					 {
+						 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
+						 numberOfUnparsableFiles++;
+					 }
+				 }
+			 }
+			 else
+			 {
+				 //***TEST CODE***
+	//			 inputFile = new File("SampleTextDoc.txt"); 
+	//			 addDoc(w, "www1", inputFile);
+	//			 
+	//			 inputFile = new File("secondSampleTextDoc.txt"); 
+	//			 addDoc(w, "www2", inputFile);
+				 
+				 inputFile = new File("WEBPAGES_RAW/0/189"); 
+				 addDoc(w, "www2", inputFile);
+			 }
+	
+			 
+			//Close or commit IndexWriter to push changes for IndexReader
+			 w.close();	
+		}
+		catch (Exception e) {
+			System.out.println("There was some exception thrown during indexing: " + e.getStackTrace());
+		}
 	}
 	
 	
@@ -223,7 +249,7 @@ public class SearchEngine {
 	Will iterate through all documents held within the index and append to a map with key representing the term and value being all documents that have
 	the term within it. This will assume terms can be within any field even the title of the document
 	*/
-	private static HashMap<String, HashSet<String>> getIndexAsMap(IndexReader reader) throws IOException{
+	private static HashMap<String, HashSet<String>> convertIndexToMap(IndexReader reader) throws IOException{
 		 HashMap<String, HashSet<String>> hmap = new HashMap<String, HashSet<String>>();
 		 HashSet<String> docIdSet;
 		 
@@ -258,34 +284,9 @@ public class SearchEngine {
 		 return hmap;
 	}
 	
-	private static HashMap<String, String> getMetrics(HashMap<String, HashSet<String>> hmap, IndexReader reader)
-	{
-		double totalIndexSize = 0;
-		int numOfCfsFiles = 0;
-		
-		File indexFile = new File(REAL_INDEX);
-		 	
-		 for(File file : indexFile.listFiles())
-		 {
-			 if(file.getName().endsWith(".cfs"))
-			 {
-				 numOfCfsFiles++;
-				 totalIndexSize += file.length() / (double)1024 / 1024;
-			 }
-		 }
-		 
-		 //Puts the metric results in a hashmap
-		HashMap<String, String> results = new HashMap<>(); 
-		results.put(INDEX_METRIC_SIZE_KEY, String.format("%.2f", totalIndexSize));
-		results.put(INDEX_METRIC_SIZE_COUNT_KEY, String.valueOf(numOfCfsFiles));
-		results.put(INDEX_METRIC_UNIQUE_KEY, String.valueOf(hmap.size()));
-		results.put(INDEX_METRIC_DOC_CT_KEY, String.valueOf(reader.numDocs()));
-
-		return results;
-	}
 	
 	//Iterates through map and prints out as a postings as seen in lectures
-	private static void printOutIndex(HashMap<String, HashSet<String>> hmap){
+	private static void printIndexMap(HashMap<String, HashSet<String>> hmap){
 		
 		try{
 			//False overwrites old data
@@ -349,4 +350,29 @@ public class SearchEngine {
 		}
 	}
 
+	private static HashMap<String, String> calculateMetrics(HashMap<String, HashSet<String>> hmap, IndexReader reader)
+	{
+		double totalIndexSize = 0;
+		int numOfCfsFiles = 0;
+		
+		File indexFile = new File(REAL_INDEX);
+		 	
+		 for(File file : indexFile.listFiles())
+		 {
+			 if(file.getName().endsWith(".cfs"))
+			 {
+				 numOfCfsFiles++;
+				 totalIndexSize += file.length() / (double)1024 / 1024;
+			 }
+		 }
+		 
+		 //Puts the metric results in a hashmap
+		HashMap<String, String> results = new HashMap<>(); 
+		results.put(INDEX_METRIC_SIZE_KEY, String.format("%.2f", totalIndexSize));
+		results.put(INDEX_METRIC_SIZE_COUNT_KEY, String.valueOf(numOfCfsFiles));
+		results.put(INDEX_METRIC_UNIQUE_KEY, String.valueOf(hmap.size()));
+		results.put(INDEX_METRIC_DOC_CT_KEY, String.valueOf(reader.numDocs()));
+
+		return results;
+	}
 }
