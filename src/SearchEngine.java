@@ -25,7 +25,6 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.json.JSONArray;
@@ -35,10 +34,10 @@ import org.jsoup.nodes.Element;
 
 public class SearchEngine {
 
-	final private  boolean PRINT_INDEX_TO_SCREEN = false;
-	final private  boolean PRINT_INDEX_TO_FILE = false;
-	final private  boolean PRINT_METRIC_TO_SCREEN = true;
-	final private  boolean PRINT_METRIC_TO_FILE = false;
+	final private static boolean PRINT_INDEX_TO_SCREEN = false;
+	final private static boolean PRINT_INDEX_TO_FILE = true;
+	final private static boolean PRINT_METRIC_TO_SCREEN = true;
+	final private static boolean PRINT_METRIC_TO_FILE = false;
 	
 	final private  boolean GET_CONTENT_URL = false;
 	final private  boolean PRINT_CONTENT_STRING = false;
@@ -58,13 +57,13 @@ public class SearchEngine {
 	final private  String INDEX_METRIC_UNPARSABLE_CT = "numberOfUnparsableFiles";
 	
 	private enum operation { INDEX, SEARCH, PRINT_INDEX, PRINT_METRICS }  
-	private int numberOfUnparsableFiles;
+	private int numberOfUnparsableFiles = 0;
 	
 	public static void main(String[] args) throws IOException, ParseException, Exception{		 		
 		SearchEngine se = new SearchEngine();
 		Directory index = null;
 
-		operation op = operation.INDEX;
+		operation op = operation.PRINT_METRICS;
 		
 		File indexFile = new File(REAL_INDEX);
 		 
@@ -87,11 +86,11 @@ public class SearchEngine {
 				 break;
 				 
 			 case PRINT_INDEX:
-				 se.printInvertedIndex(index);
+				 se.printInvertedIndex(index, PRINT_INDEX_TO_SCREEN, PRINT_INDEX_TO_FILE);
 				 break;
 				 
 			 case PRINT_METRICS:
-				 se.printIndexMetrics(index);
+				 se.printIndexMetrics(index, PRINT_METRIC_TO_SCREEN, PRINT_METRIC_TO_FILE);
 				 break;
 				 
 			default:
@@ -100,7 +99,7 @@ public class SearchEngine {
 		 }
 		 
   
-		 
+		 index.close();
 	}
 	
 	public void indexCorpus(Directory index){
@@ -179,15 +178,15 @@ public class SearchEngine {
 	/* Prints an inverted index of the corpus 
 	 * 
 	 * */
-	public void printInvertedIndex(Directory index){
+	public void printInvertedIndex(Directory index, boolean printToScreen, boolean printToFile){
 		 
 		try{
 			 //Creating our index
 			 IndexReader reader = DirectoryReader.open(index);
-			 
+
 			 HashMap<String, HashSet<String>> hmap = convertIndexToMap(reader);
-			 printIndexMap(hmap);
-	
+			 printIndexMap(hmap, printToScreen, printToFile);
+
 			 reader.close();  
 		}
 		catch(Exception e){
@@ -198,7 +197,7 @@ public class SearchEngine {
 	/* Prints the metrics of the index 
 	 * 
 	 * */
-	public void printIndexMetrics(Directory index){
+	public void printIndexMetrics(Directory index, boolean printMetricsToScreen, boolean printMetricsToFile){
 		 
 		try{
 			 //Creating our index
@@ -208,10 +207,10 @@ public class SearchEngine {
 			 HashMap<String, HashSet<String>> hmap = convertIndexToMap(reader);
 			 
 			 HashMap<String, String> metrics = calculateMetrics(hmap, reader); 
-			 
+			 System.out.println("tstr: " + numberOfUnparsableFiles);
 			 //add the bad file metric... should probably just make this map global
 			 metrics.put(INDEX_METRIC_UNPARSABLE_CT, String.valueOf(numberOfUnparsableFiles));
-			 printMetrics(metrics);
+			 printMetrics(metrics, printMetricsToScreen, printMetricsToFile);
 	
 			 reader.close();  
 		}
@@ -304,7 +303,7 @@ public class SearchEngine {
 		 
 		 for(int i=0; i<reader.numDocs(); i++){
 			 Fields termVect = reader.getTermVectors(i);
-		
+
 			 if(termVect == null)
 				 continue;
 			 
@@ -335,7 +334,7 @@ public class SearchEngine {
 	
 	
 	//Iterates through map and prints out as a postings as seen in lectures
-	private void printIndexMap(HashMap<String, HashSet<String>> hmap){
+	private void printIndexMap(HashMap<String, HashSet<String>> hmap, boolean printToScreen, boolean printToFile){
 		
 		try{
 			//False overwrites old data
@@ -347,15 +346,14 @@ public class SearchEngine {
 		       	output = key + " -> " + String.join(", ", hmap.get(key));
 		       	
 		        //Printing to screen
-		        if(PRINT_INDEX_TO_SCREEN)
+		        if(printToScreen)
 		        	System.out.println(output);
 		        
-		        if(PRINT_INDEX_TO_FILE){
+		        if(printToFile){
 					try {
 						writer.write(output + "\n");
 					} catch (IOException e){}	
-		        }
-		       	
+		        } 	
 	        }
 	        
 	        writer.close();
@@ -365,8 +363,8 @@ public class SearchEngine {
 		}
 	}
 	
-	public  void printMetrics(HashMap<String, String> metrics){
-		if(PRINT_METRIC_TO_SCREEN)
+	public  void printMetrics(HashMap<String, String> metrics, boolean printMetricsToScreen, boolean printMetricsToFile){
+		if(printMetricsToScreen)
 		{
 			System.out.println("\nTotal number of flat (.cfs files) files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
 			System.out.println("Size of the complete index size: " + metrics.get(INDEX_METRIC_SIZE_KEY) +  " MB");
@@ -376,7 +374,7 @@ public class SearchEngine {
 
 		}
 	
-		if(PRINT_METRIC_TO_FILE)
+		if(printMetricsToFile)
 		{
 			try 
 			{
