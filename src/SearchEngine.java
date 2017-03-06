@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 
-
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -24,6 +24,9 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -171,8 +174,26 @@ public class SearchEngine {
 	 * 
 	 * */
 	public void searchIndex(Directory index) throws Exception{
-		 
-		throw new Exception("Not yet implemented");
+//		String searchString = "crista lopes";
+//		
+//		System.out.println("Searching for '" + searchString + "'");
+//		
+//		IndexReader indexReader = IndexReader.open(index);
+//		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+//
+//		Analyzer analyzer = new StandardAnalyzer();
+//		QueryParser queryParser = new QueryParser(FIELD_CONTENTS, analyzer);
+//		Query query = queryParser.parse(searchString);
+//		Hits hits = indexSearcher.search(query);
+//		System.out.println("Number of hits: " + hits.length());
+//
+//		Iterator<Hit> it = hits.iterator();
+//		while (it.hasNext()) {
+//			Hit hit = it.next();
+//			Document document = hit.getDocument();
+//			String path = document.get(FIELD_PATH);
+//			System.out.println("Hit: " + path);
+//		}
 	}
 	
 	/* Prints an inverted index of the corpus 
@@ -207,7 +228,7 @@ public class SearchEngine {
 			 HashMap<String, HashSet<String>> hmap = convertIndexToMap(reader);
 			 
 			 HashMap<String, String> metrics = calculateMetrics(hmap, reader); 
-			 System.out.println("tstr: " + numberOfUnparsableFiles);
+
 			 //add the bad file metric... should probably just make this map global
 			 metrics.put(INDEX_METRIC_UNPARSABLE_CT, String.valueOf(numberOfUnparsableFiles));
 			 printMetrics(metrics, printMetricsToScreen, printMetricsToFile);
