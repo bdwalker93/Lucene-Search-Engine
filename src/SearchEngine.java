@@ -35,70 +35,73 @@ import org.jsoup.nodes.Element;
 
 public class SearchEngine {
 
-	final private static boolean PRINT_INDEX_TO_SCREEN = false;
-	final private static boolean PRINT_INDEX_TO_FILE = false;
-	final private static boolean PRINT_METRIC_TO_SCREEN = true;
-	final private static boolean PRINT_METRIC_TO_FILE = false;
+	final private  boolean PRINT_INDEX_TO_SCREEN = false;
+	final private  boolean PRINT_INDEX_TO_FILE = false;
+	final private  boolean PRINT_METRIC_TO_SCREEN = true;
+	final private  boolean PRINT_METRIC_TO_FILE = false;
 	
-	final private static boolean GET_CONTENT_URL = false;
-	final private static boolean PRINT_CONTENT_STRING = false;
-	final private static boolean PRINT_CONTENT_BODY = false;
-	final private static boolean PRINT_CONTENT_TEXT = false;
+	final private  boolean GET_CONTENT_URL = false;
+	final private  boolean PRINT_CONTENT_STRING = false;
+	final private  boolean PRINT_CONTENT_BODY = false;
+	final private  boolean PRINT_CONTENT_TEXT = false;
 
-	final private static boolean USE_REAL_FILES = true;
-	final private static int REAL_FILE_INDEX_LIMIT = -1;
+	final private  boolean USE_REAL_FILES = true;
+	final private  int REAL_FILE_INDEX_LIMIT = -1;
 	
-	final private static String REAL_INDEX = "index";
-	final private static String HUMAN_READABLE_INDEX = "index.txt";
+	final private  String REAL_INDEX = "index";
+	final private  String HUMAN_READABLE_INDEX = "index.txt";
 	
-	final private static String INDEX_METRIC_SIZE_KEY = "indexSize";
-	final private static String INDEX_METRIC_SIZE_COUNT_KEY = "indexFileCount";
-	final private static String INDEX_METRIC_UNIQUE_KEY = "uniqueKeyCount";
-	final private static String INDEX_METRIC_DOC_CT_KEY = "numberOfDocsRead";
-	final private static String INDEX_METRIC_UNPARSABLE_CT = "numberOfUnparsableFiles";
+	final private  String INDEX_METRIC_SIZE_KEY = "indexSize";
+	final private  String INDEX_METRIC_SIZE_COUNT_KEY = "indexFileCount";
+	final private  String INDEX_METRIC_UNIQUE_KEY = "uniqueKeyCount";
+	final private  String INDEX_METRIC_DOC_CT_KEY = "numberOfDocsRead";
+	final private  String INDEX_METRIC_UNPARSABLE_CT = "numberOfUnparsableFiles";
 	
-	private enum operation { INDEX, SEARCH }  
-
+	private enum operation { INDEX, SEARCH, PRINT_INDEX, PRINT_METRICS }  
+	private int numberOfUnparsableFiles;
 	
-	public static void main(String[] args) throws IOException, ParseException{		 		
+	public  void main(String[] args) throws IOException, ParseException, Exception{		 		
 		SearchEngine se = new SearchEngine();
+		Directory index = null;
+
 		operation op = operation.INDEX;
 		 
-		 
-		 switch(op){
-			 case INDEX:
-				 indexCorpus(REAL_INDEX);
-				 System.out.println("***INDEXING COMPLETE***");
-				 break;
+			 switch(op){
+				 case INDEX:
+					 index = se.indexCorpus(REAL_INDEX);
+					 System.out.println("***INDEXING COMPLETE***");
+					 break;
+					 
+				 case SEARCH:
+					 se.searchIndex(index);
+					 break;
+					 
+				 case PRINT_INDEX:
+					 se.printInvertedIndex(index);
+					 break;
+					 
+				 case PRINT_METRICS:
+					 se.printIndexMetrics(index);
+					 break;
+					 
+				default:
+					System.out.println("UNKNOWN OPERATION");
 				 
-			 case SEARCH:
-				 break;
-				 
-			default:
-				System.out.println("UNKNOWN OPERATION");
-			 
-		 }
+			 }
 		 
-		 
-		 //Creating our index
-		 IndexReader reader = DirectoryReader.open(index);
-		 
-		 HashMap<String, HashSet<String>> hmap = getIndexAsMap(reader);
-		 printOutIndex(hmap);
-		 
-		 HashMap<String, String> metrics = getMetrics(hmap, reader); 
-		 
-		 //add the bad file metric... should probably just make this map global
-		 metrics.put(INDEX_METRIC_UNPARSABLE_CT, String.valueOf(numberOfUnparsableFiles));
-		 printMetrics(metrics);
-
-		 reader.close();    
+  
 		 
 	}
 	
-	public void indexCorpus(String indexLocation){
+	public Directory indexCorpus(String indexLocation){
+		StandardAnalyzer analyzer = new StandardAnalyzer();  
+		IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		//Sets how we handles an existing index
+		config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+		 
+		Directory index = null;
+		 
 		try{
-			StandardAnalyzer analyzer = new StandardAnalyzer();  
 			File indexFile = new File(indexLocation);
 			 
 			 //Check to make sure the index directory exists
@@ -107,22 +110,16 @@ public class SearchEngine {
 				indexFile.mkdir(); 
 			 }
 			 
-			 Directory index = new SimpleFSDirectory(indexFile.toPath());																						
-			 IndexWriterConfig config = new IndexWriterConfig(analyzer);
+			 index = new SimpleFSDirectory(indexFile.toPath());																						
 			 
-			 //Sets how we handles an existing index
-			 config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 			 IndexWriter w = new IndexWriter(index, config);				
 			 
-			 //URL path = Test_Lucene.class.getResource("SampleTextDoc.txt"); //How to get txt that is in same directory to avoid complications
+			 //Loading our courpus guide
 			 File bookKeeping = new File("WEBPAGES_RAW/bookkeeping.json"); 
 			 JSONObject jsonObj = new JSONObject(String.join("", Files.readAllLines(bookKeeping.toPath(), StandardCharsets.UTF_8)));
 			 
 			 File inputFile = null;
-			 
-			 // Metric field
-			 int numberOfUnparsableFiles = 0;
-			 
+			 			 
 			 //THIS CHECK IS ONLY FOR DEVELOPMENT
 			 if(USE_REAL_FILES)
 			 {
@@ -141,7 +138,9 @@ public class SearchEngine {
 						 {
 							 numberOfUnparsableFiles++;
 						 }
-					 }catch(IllegalArgumentException e)
+					 }
+					 //catch(IllegalArgumentException e)
+					 catch(Exception e)
 					 {
 						 System.out.println("***ILLEGAL ARGUMENTS FOUND***: " + e.getMessage());
 						 numberOfUnparsableFiles++;
@@ -151,11 +150,11 @@ public class SearchEngine {
 			 else
 			 {
 				 //***TEST CODE***
-	//			 inputFile = new File("SampleTextDoc.txt"); 
-	//			 addDoc(w, "www1", inputFile);
-	//			 
-	//			 inputFile = new File("secondSampleTextDoc.txt"); 
-	//			 addDoc(w, "www2", inputFile);
+				 inputFile = new File("SampleTextDoc.txt"); 
+				 addDoc(w, "www1", inputFile);
+				 
+				 inputFile = new File("secondSampleTextDoc.txt"); 
+				 addDoc(w, "www2", inputFile);
 				 
 				 inputFile = new File("WEBPAGES_RAW/0/189"); 
 				 addDoc(w, "www2", inputFile);
@@ -168,15 +167,68 @@ public class SearchEngine {
 		catch (Exception e) {
 			System.out.println("There was some exception thrown during indexing: " + e.getStackTrace());
 		}
+		
+		return index;
 	}
 	
+	/* Searches the passed index
+	 * 
+	 * */
+	public void searchIndex(Directory index) throws Exception{
+		 
+		throw new Exception("Not yet implemented");
+	}
+	
+	/* Prints an inverted index of the corpus 
+	 * 
+	 * */
+	public void printInvertedIndex(Directory index){
+		 
+		try{
+			 //Creating our index
+			 IndexReader reader = DirectoryReader.open(index);
+			 
+			 HashMap<String, HashSet<String>> hmap = convertIndexToMap(reader);
+			 printIndexMap(hmap);
+	
+			 reader.close();  
+		}
+		catch(Exception e){
+			System.out.println("There was some exception thrown during printing: " + e.getStackTrace());
+		}
+	}
+	
+	/* Prints the metrics of the index 
+	 * 
+	 * */
+	public void printIndexMetrics(Directory index){
+		 
+		try{
+			 //Creating our index
+			 IndexReader reader = DirectoryReader.open(index);
+			 
+			 //Need this map for metrics
+			 HashMap<String, HashSet<String>> hmap = convertIndexToMap(reader);
+			 
+			 HashMap<String, String> metrics = calculateMetrics(hmap, reader); 
+			 
+			 //add the bad file metric... should probably just make this map global
+			 metrics.put(INDEX_METRIC_UNPARSABLE_CT, String.valueOf(numberOfUnparsableFiles));
+			 printMetrics(metrics);
+	
+			 reader.close();  
+		}
+		catch(Exception e){
+			System.out.println("There was some exception thrown during printing: " + e.getStackTrace());
+		}
+	}
 	
 	/* Adds a new document to to the index.
 	 *
 	 * Use the following link for setting up help with increasing the scoring of certain terms:
 	 * https://lucene.apache.org/core/3_5_0/scoring.html#Fields and Documents
 	 * */
-	private static int addDoc(IndexWriter w, String url, File file) throws IOException, IllegalArgumentException {
+	private int addDoc(IndexWriter w, String url, File file) throws IOException, IllegalArgumentException {
 		
 		//TODO: needs to be able to parse HTML pages here
 		//File parsing
@@ -249,7 +301,7 @@ public class SearchEngine {
 	Will iterate through all documents held within the index and append to a map with key representing the term and value being all documents that have
 	the term within it. This will assume terms can be within any field even the title of the document
 	*/
-	private static HashMap<String, HashSet<String>> convertIndexToMap(IndexReader reader) throws IOException{
+	private HashMap<String, HashSet<String>> convertIndexToMap(IndexReader reader) throws IOException{
 		 HashMap<String, HashSet<String>> hmap = new HashMap<String, HashSet<String>>();
 		 HashSet<String> docIdSet;
 		 
@@ -286,7 +338,7 @@ public class SearchEngine {
 	
 	
 	//Iterates through map and prints out as a postings as seen in lectures
-	private static void printIndexMap(HashMap<String, HashSet<String>> hmap){
+	private void printIndexMap(HashMap<String, HashSet<String>> hmap){
 		
 		try{
 			//False overwrites old data
@@ -316,7 +368,7 @@ public class SearchEngine {
 		}
 	}
 	
-	public static void printMetrics(HashMap<String, String> metrics){
+	public  void printMetrics(HashMap<String, String> metrics){
 		if(PRINT_METRIC_TO_SCREEN)
 		{
 			System.out.println("\nTotal number of flat (.cfs files) files storing the index: " + metrics.get(INDEX_METRIC_SIZE_COUNT_KEY));
@@ -350,7 +402,7 @@ public class SearchEngine {
 		}
 	}
 
-	private static HashMap<String, String> calculateMetrics(HashMap<String, HashSet<String>> hmap, IndexReader reader)
+	private HashMap<String, String> calculateMetrics(HashMap<String, HashSet<String>> hmap, IndexReader reader)
 	{
 		double totalIndexSize = 0;
 		int numOfCfsFiles = 0;
