@@ -145,7 +145,11 @@ public class SearchEngine {
 	}
 	
 	
-	//Will add new document to Index
+	/* Adds a new document to to the index.
+	 *
+	 * Use the following link for setting up help with increasing the scoring of certain terms:
+	 * https://lucene.apache.org/core/3_5_0/scoring.html#Fields and Documents
+	 * */
 	private static int addDoc(IndexWriter w, String url, File file) throws IOException, IllegalArgumentException {
 		
 		//TODO: needs to be able to parse HTML pages here
