@@ -65,52 +65,51 @@ public class SearchEngine {
 		Directory index = null;
 
 		operation op = operation.INDEX;
+		
+		File indexFile = new File(REAL_INDEX);
 		 
-			 switch(op){
-				 case INDEX:
-					 index = se.indexCorpus(REAL_INDEX);
-					 System.out.println("***INDEXING COMPLETE***");
-					 break;
-					 
-				 case SEARCH:
-					 se.searchIndex(index);
-					 break;
-					 
-				 case PRINT_INDEX:
-					 se.printInvertedIndex(index);
-					 break;
-					 
-				 case PRINT_METRICS:
-					 se.printIndexMetrics(index);
-					 break;
-					 
-				default:
-					System.out.println("UNKNOWN OPERATION");
+		 //Check to make sure the index directory exists
+		 if(!indexFile.isDirectory())
+		 {
+			indexFile.mkdir(); 
+		 }
+		 
+		 index = new SimpleFSDirectory(indexFile.toPath());	
+		 
+		 switch(op){
+			 case INDEX:
+				 se.indexCorpus(index);
+				 System.out.println("***INDEXING COMPLETE***");
+				 break;
 				 
-			 }
+			 case SEARCH:
+				 se.searchIndex(index);
+				 break;
+				 
+			 case PRINT_INDEX:
+				 se.printInvertedIndex(index);
+				 break;
+				 
+			 case PRINT_METRICS:
+				 se.printIndexMetrics(index);
+				 break;
+				 
+			default:
+				System.out.println("UNKNOWN OPERATION");
+			 
+		 }
 		 
   
 		 
 	}
 	
-	public Directory indexCorpus(String indexLocation){
+	public void indexCorpus(Directory index){
 		StandardAnalyzer analyzer = new StandardAnalyzer();  
 		IndexWriterConfig config = new IndexWriterConfig(analyzer);
 		//Sets how we handles an existing index
 		config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-		 
-		Directory index = null;
-		 
-		try{
-			File indexFile = new File(indexLocation);
-			 
-			 //Check to make sure the index directory exists
-			 if(!indexFile.isDirectory())
-			 {
-				indexFile.mkdir(); 
-			 }
-			 
-			 index = new SimpleFSDirectory(indexFile.toPath());																						
+		 		 
+		try{																					
 			 
 			 IndexWriter w = new IndexWriter(index, config);				
 			 
@@ -167,8 +166,6 @@ public class SearchEngine {
 		catch (Exception e) {
 			System.out.println("There was some exception thrown during indexing: " + e.getStackTrace());
 		}
-		
-		return index;
 	}
 	
 	/* Searches the passed index
