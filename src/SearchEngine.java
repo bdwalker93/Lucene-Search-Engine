@@ -60,7 +60,7 @@ public class SearchEngine {
 	private enum operation { INDEX, SEARCH, PRINT_INDEX, PRINT_METRICS }  
 	private int numberOfUnparsableFiles;
 	
-	public  void main(String[] args) throws IOException, ParseException, Exception{		 		
+	public static void main(String[] args) throws IOException, ParseException, Exception{		 		
 		SearchEngine se = new SearchEngine();
 		Directory index = null;
 
