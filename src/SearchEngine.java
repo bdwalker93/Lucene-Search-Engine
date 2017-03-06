@@ -48,7 +48,7 @@ public class SearchEngine {
 	final private  boolean USE_REAL_FILES = true;
 	final private  int REAL_FILE_INDEX_LIMIT = -1;
 	
-	final private  String REAL_INDEX = "index";
+	final private static  String REAL_INDEX = "index";
 	final private  String HUMAN_READABLE_INDEX = "index.txt";
 	
 	final private  String INDEX_METRIC_SIZE_KEY = "indexSize";
