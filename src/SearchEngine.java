@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.KeywordAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -23,10 +24,13 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -66,7 +70,7 @@ public class SearchEngine {
 		SearchEngine se = new SearchEngine();
 		Directory index = null;
 
-		operation op = operation.PRINT_METRICS;
+		operation op = operation.SEARCH;
 		
 		File indexFile = new File(REAL_INDEX);
 		 
@@ -174,26 +178,30 @@ public class SearchEngine {
 	 * 
 	 * */
 	public void searchIndex(Directory index) throws Exception{
-//		String searchString = "crista lopes";
-//		
-//		System.out.println("Searching for '" + searchString + "'");
-//		
-//		IndexReader indexReader = IndexReader.open(index);
-//		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-//
-//		Analyzer analyzer = new StandardAnalyzer();
-//		QueryParser queryParser = new QueryParser(FIELD_CONTENTS, analyzer);
-//		Query query = queryParser.parse(searchString);
-//		Hits hits = indexSearcher.search(query);
-//		System.out.println("Number of hits: " + hits.length());
-//
-//		Iterator<Hit> it = hits.iterator();
-//		while (it.hasNext()) {
-//			Hit hit = it.next();
-//			Document document = hit.getDocument();
-//			String path = document.get(FIELD_PATH);
-//			System.out.println("Hit: " + path);
-//		}
+		String searchString = "crista lopes";
+		
+		System.out.println("Searching for '" + searchString + "'");
+
+		IndexReader indexReader = DirectoryReader.open(index);
+		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+		
+		Query q = new QueryParser("content", new StandardAnalyzer()).parse(searchString);
+
+		
+//		Query q = MultiFieldQueryParser.parse(new String[]{searchString},
+//		        new String[]{"title", "content"},
+//		        new StandardAnalyzer());
+		 
+		int hitsPerPage = 10;
+		TopDocs docs = indexSearcher.search(q, hitsPerPage);
+		ScoreDoc[] hits = docs.scoreDocs;
+
+	    System.out.println("Found " + hits.length + " hits.");
+	    for(int i=0;i<hits.length;++i) {
+	    	int docId = hits[i].doc;
+	        Document d = indexSearcher.doc(docId);
+	        System.out.println((i + 1) + ". " + d.get("title") + "\t" + d.get("url"));
+	     }
 	}
 	
 	/* Prints an inverted index of the corpus 
@@ -214,7 +222,6 @@ public class SearchEngine {
 			System.out.println("There was some exception thrown during printing: " + e.getStackTrace());
 		}
 	}
-	
 	/* Prints the metrics of the index 
 	 * 
 	 * */
@@ -280,6 +287,7 @@ public class SearchEngine {
 				
 		//Document Creation
 		Document doc = new Document();
+		Field field = null;
 		FieldType type = new FieldType();
 		type.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
 		type.setStored(true); 
@@ -287,17 +295,23 @@ public class SearchEngine {
 		type.setTokenized(true);
 		
 		//If there is text in the head, it is probably a title
-		if(title != null && !title.isEmpty())
-			doc.add(new Field("title", title, type));
+		if(title != null && !title.isEmpty()){
+			field = new Field("title", title, type);
+			field.setBoost(10); //Set weight for the field when query matches to string in field here
+			doc.add(field);
+		}
 		
 		//Need to make sure there is a body and it isnt empty
-		if(content != null && !content.isEmpty())
-			doc.add(new Field("content", content, type));
+		if(content != null && !content.isEmpty()){
+			field = new Field("content", content, type);
+			field.setBoost(1); //Set weight for the field when query matches to string in field here
+			doc.add(field);
+		}
 		
 		//Need to make sure we have content before attempting to add a link to a document
 		if(doc.getFields().size() > 0)
 		{
-			//fileID field should not be used for finding terms within document, only for uniquely identifying this doc amoungst others in index
+			//fileID field should not be used for finding terms within document, only for uniquely identifying this doc amongst others in index
 			type = new FieldType();
 			type.setStored(true);
 			type.setTokenized(false);
