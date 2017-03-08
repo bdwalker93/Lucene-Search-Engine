@@ -240,7 +240,7 @@ public class SearchEngine {
 	    for(int i=0;i<hits.length;++i) {
 	    	int docId = hits[i].doc;
 	        Document d = indexSearcher.doc(docId);
-	        System.out.println((i + 1) + ". " + d.get("title") + "\t" + d.get("url"));
+	        System.out.println((i + 1) + ". " + d.get("title") + "\t" + d.get("url")  + "\t" + hits[i].score);
 	     }
 	}
 	
