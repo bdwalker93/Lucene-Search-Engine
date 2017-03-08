@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -23,9 +24,10 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -206,16 +208,38 @@ public class SearchEngine {
 
 		IndexReader indexReader = DirectoryReader.open(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-		
-		Query q = new QueryParser("content", new StandardAnalyzer()).parse(searchString);
 
+		Analyzer analyzer = new StandardAnalyzer();
+//		MultiFieldQueryParser multiQueryParser = new MultiFieldQueryParser(
+//		                                        new String[] {"bodytext", "title"},
+//		                                        analyzer);
 		
+		String[] fields = {"content", "title"};
+		BooleanClause.Occur[] flags = 
+		{
+			BooleanClause.Occur.SHOULD,
+			BooleanClause.Occur.SHOULD,
+         };
+		
+		TopDocs docs = indexSearcher.search(MultiFieldQueryParser.parse(searchString, fields, flags, analyzer), 10);
+//		 String[] query = {"query1", "query2", "query3"};
+//		 String[] fields = {"filename", "contents", "description"};
+//		 BooleanClause.Occur[] flags = {BooleanClause.Occur.SHOULD,
+//		                BooleanClause.Occur.MUST,
+//		                BooleanClause.Occur.MUST_NOT};
+//		 MultiFieldQueryParser.parse(query, fields, flags, analyzer);
+//		IndexReader indexReader = DirectoryReader.open(index);
+//		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+//		
+//		Query q = new QueryParser("content", new StandardAnalyzer()).parse(searchString);
+//
+//		
 //		Query q = MultiFieldQueryParser.parse(new String[]{searchString},
 //		        new String[]{"title", "content"},
 //		        new StandardAnalyzer());
-		 
-		int hitsPerPage = 500;
-		TopDocs docs = indexSearcher.search(q, hitsPerPage);
+//		 
+//		int hitsPerPage = 500;
+//		TopDocs docs = indexSearcher.search(q, hitsPerPage);
 		ScoreDoc[] hits = docs.scoreDocs;
 
 	    System.out.println("Found " + hits.length + " hits.");
