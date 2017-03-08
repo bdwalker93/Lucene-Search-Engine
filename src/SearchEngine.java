@@ -41,7 +41,7 @@ import org.jsoup.select.Elements;
 
 public class SearchEngine {
 
-	final private static boolean PRINT_INDEX_TO_SCREEN = true;
+	final private static boolean PRINT_INDEX_TO_SCREEN = false;
 	final private static boolean PRINT_INDEX_TO_FILE = false;
 	final private static boolean PRINT_METRIC_TO_SCREEN = true;
 	final private static boolean PRINT_METRIC_TO_FILE = false;
@@ -51,7 +51,7 @@ public class SearchEngine {
 	final private  boolean PRINT_CONTENT_BODY = false;
 	final private  boolean PRINT_CONTENT_TEXT = false;
 
-	final private  boolean USE_REAL_FILES = false;
+	final private  boolean USE_REAL_FILES = true;
 	final private  int REAL_FILE_INDEX_LIMIT = -1;
 	
 	final private static  String REAL_INDEX = "index";
@@ -70,7 +70,8 @@ public class SearchEngine {
 		SearchEngine se = new SearchEngine();
 		Directory index = null;
 
-		operation op = operation.INDEX;
+//		operation op = operation.INDEX;
+		operation op = operation.SEARCH;
 		
 		File indexFile = new File(REAL_INDEX);
 		 
@@ -213,7 +214,7 @@ public class SearchEngine {
 //		        new String[]{"title", "content"},
 //		        new StandardAnalyzer());
 		 
-		int hitsPerPage = 20;
+		int hitsPerPage = 500;
 		TopDocs docs = indexSearcher.search(q, hitsPerPage);
 		ScoreDoc[] hits = docs.scoreDocs;
 
@@ -320,7 +321,7 @@ public class SearchEngine {
 		//If there is text in the head, it is probably a title
 		if(title != null && !title.isEmpty()){
 			field = new Field("title", title, type);
-			field.setBoost(10); //Set weight for the field when query matches to string in field here
+			field.setBoost(20); //Set weight for the field when query matches to string in field here
 			doc.add(field);
 		}
 		
@@ -347,7 +348,7 @@ public class SearchEngine {
 			//We remove any content in these tags so there is no duplicate counting
 			boldTags.remove();
 		}
-		System.out.println("This is Bolding: " + boldTags.text());
+//		System.out.println("This is Bolding: " + boldTags.text());
 
 		
 		//Grab all heading tags
@@ -368,7 +369,7 @@ public class SearchEngine {
 				//We remove any content in these tags so there is no duplicate counting
 				hTags.remove();
 			}
-			System.out.println("This is heading: " + headingNum + " - " + hTags.text());
+//			System.out.println("This is heading: " + headingNum + " - " + hTags.text());
 
 		}
 		
