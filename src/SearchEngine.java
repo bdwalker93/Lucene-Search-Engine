@@ -339,7 +339,7 @@ public class SearchEngine {
 		//If there is text in the head, it is probably a title
 		if(title != null && !title.isEmpty()){
 			field = new Field("title", title, type);
-			field.setBoost(10); //Set weight for the field when query matches to string in field here
+			field.setBoost(15); //Set weight for the field when query matches to string in field here
 			doc.add(field);
 		}
 		
