@@ -8,9 +8,10 @@ import java.nio.file.Files;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Scanner;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.KeywordAnalyzer;
+//import org.apache.lucene.analysis.KeywordAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -24,7 +25,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.queryParser.MultiFieldQueryParser;
+//import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -174,11 +175,26 @@ public class SearchEngine {
 		}
 	}
 	
+	/* Reads user input to get search string
+	 * 
+	 * */
+	private String getSearchString(){
+		Scanner scanner = new Scanner(System.in);
+		String phrase = null;
+		
+		System.out.println("Please enter the search phrase: ");
+		phrase = scanner.nextLine();
+		
+		scanner.close();
+		
+		return phrase;
+	}
+	
 	/* Searches the passed index
 	 * 
 	 * */
 	public void searchIndex(Directory index) throws Exception{
-		String searchString = "crista lopes";
+		String searchString = getSearchString();
 		
 		System.out.println("Searching for '" + searchString + "'");
 
@@ -192,7 +208,7 @@ public class SearchEngine {
 //		        new String[]{"title", "content"},
 //		        new StandardAnalyzer());
 		 
-		int hitsPerPage = 10;
+		int hitsPerPage = 10000;
 		TopDocs docs = indexSearcher.search(q, hitsPerPage);
 		ScoreDoc[] hits = docs.scoreDocs;
 
