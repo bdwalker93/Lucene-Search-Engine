@@ -37,6 +37,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class SearchEngine {
 
@@ -180,7 +181,7 @@ public class SearchEngine {
 		Scanner scanner = new Scanner(System.in);
 		String phrase = null;
 		
-		System.out.println("Please enter the search phrase: ");
+		System.out.print("Please enter the search phrase: ");
 		phrase = scanner.nextLine();
 		
 		scanner.close();
@@ -206,7 +207,7 @@ public class SearchEngine {
 //		        new String[]{"title", "content"},
 //		        new StandardAnalyzer());
 		 
-		int hitsPerPage = 10000;
+		int hitsPerPage = 20;
 		TopDocs docs = indexSearcher.search(q, hitsPerPage);
 		ScoreDoc[] hits = docs.scoreDocs;
 
@@ -276,6 +277,7 @@ public class SearchEngine {
 		if(html == null)
 			return -1;
 		
+		
 		if(PRINT_CONTENT_STRING)
 			System.out.println("***This is the body***\n" + String.join("",Files.readAllLines(file.toPath())));
 		
@@ -285,6 +287,7 @@ public class SearchEngine {
 		String content = null;
 		Element body = html.body();
 		
+		//Get the rest of the text in the body
 		if(body != null)
 			content = body.text();
 		
@@ -318,8 +321,39 @@ public class SearchEngine {
 		//Need to make sure there is a body and it isnt empty
 		if(content != null && !content.isEmpty()){
 			field = new Field("content", content, type);
-			field.setBoost(1); //Set weight for the field when query matches to string in field here
+			
+			//Setting the default boost
+			field.setBoost(1); 
 			doc.add(field);
+		}
+		
+		//Grab the bold tags
+		Elements bodyTags = body.select("b");
+
+		if(bodyTags != null && !bodyTags.isEmpty())
+		{
+			field = new Field("bold", content, type);
+			
+			//Setting the bold tag boost
+			field.setBoost(8); 
+			doc.add(field);
+		}
+		
+		//Grab all heading tags
+		Elements headingTags = body.select("h1, h2, h3, h4, h5, h6");
+
+		for(int headingNum = 0; headingNum < 6; headingNum++)
+		{
+			//Attempt to index all the heading tags
+			Elements hTags = headingTags.select("h" + (headingNum + 1));
+			if(hTags != null && !hTags.isEmpty())
+			{
+				field = new Field("heading" + headingNum, content, type);
+				
+				//Setting the heading tag boost
+				field.setBoost(8); 
+				doc.add(field);
+			}
 		}
 		
 		//Need to make sure we have content before attempting to add a link to a document
