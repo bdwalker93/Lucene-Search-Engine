@@ -228,25 +228,8 @@ public class SearchEngine {
 			BooleanClause.Occur.SHOULD,
          };
 		
-		TopDocs docs = indexSearcher.search(MultiFieldQueryParser.parse(searchString, fields, flags, analyzer), 10);
-//		 String[] query = {"query1", "query2", "query3"};
-//		 String[] fields = {"filename", "contents", "description"};
-//		 BooleanClause.Occur[] flags = {BooleanClause.Occur.SHOULD,
-//		                BooleanClause.Occur.MUST,
-//		                BooleanClause.Occur.MUST_NOT};
-//		 MultiFieldQueryParser.parse(query, fields, flags, analyzer);
-//		IndexReader indexReader = DirectoryReader.open(index);
-//		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-//		
-//		Query q = new QueryParser("content", new StandardAnalyzer()).parse(searchString);
-//
-//		
-//		Query q = MultiFieldQueryParser.parse(new String[]{searchString},
-//		        new String[]{"title", "content"},
-//		        new StandardAnalyzer());
-//		 
-//		int hitsPerPage = 500;
-//		TopDocs docs = indexSearcher.search(q, hitsPerPage);
+		TopDocs docs = indexSearcher.search(MultiFieldQueryParser.parse(searchString, fields, flags, analyzer), 500);
+
 		ScoreDoc[] hits = docs.scoreDocs;
 
 	    System.out.println("Found " + hits.length + " hits.");
@@ -352,16 +335,7 @@ public class SearchEngine {
 		//If there is text in the head, it is probably a title
 		if(title != null && !title.isEmpty()){
 			field = new Field("title", title, type);
-			field.setBoost(20); //Set weight for the field when query matches to string in field here
-			doc.add(field);
-		}
-		
-		//Need to make sure there is a body and it isnt empty
-		if(content != null && !content.isEmpty()){
-			field = new Field("content", content, type);
-			
-			//Setting the default boost
-			field.setBoost(1); 
+			field.setBoost(10); //Set weight for the field when query matches to string in field here
 			doc.add(field);
 		}
 		
@@ -373,7 +347,7 @@ public class SearchEngine {
 			field = new Field("bold", boldTags.html(), type);
 			
 			//Setting the bold tag boost
-			field.setBoost(10); 
+			field.setBoost(1); 
 			doc.add(field);
 			
 			//We remove any content in these tags so there is no duplicate counting
@@ -394,7 +368,7 @@ public class SearchEngine {
 				field = new Field("heading" + headingNum, hTags.html(), type);
 				
 				//Setting the heading tag boost
-				field.setBoost(10); 
+				field.setBoost(1); 
 				doc.add(field);
 				
 				//We remove any content in these tags so there is no duplicate counting
@@ -419,6 +393,14 @@ public class SearchEngine {
 			return 0;
 		}
 
+		//Need to parse the remaining content after all the important tags have been deleted 
+		if(content != null && !content.isEmpty()){
+			field = new Field("content", content, type);
+			
+			//Setting the default boost
+			field.setBoost(1); 
+			doc.add(field);
+		}
 		
 		return -1;
 	}
