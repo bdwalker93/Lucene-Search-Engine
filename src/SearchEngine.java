@@ -214,7 +214,7 @@ public class SearchEngine {
 //		                                        new String[] {"bodytext", "title"},
 //		                                        analyzer);
 		
-		String[] fields = {"content", "title", "bold", "h1", "h2", "h3", "h4", "h5", "h6"};
+		String[] fields = {"content", "title", "important", "h1", "h2", "h3", "h4", "h5", "h6"};
 		BooleanClause.Occur[] flags = 
 		{
 			BooleanClause.Occur.SHOULD,
@@ -340,18 +340,18 @@ public class SearchEngine {
 		}
 		
 		//Grab the important text tags
-		Elements boldTags = body.select("b, strong, em");
+		Elements importantTags = body.select("b, strong, em");
 
-		if(boldTags != null && !boldTags.isEmpty())
+		if(importantTags != null && !importantTags.isEmpty())
 		{
-			field = new Field("bold", boldTags.html(), type);
+			field = new Field("important", importantTags.html(), type);
 			
 			//Setting the bold tag boost
 			field.setBoost(1); 
 			doc.add(field);
 			
 			//We remove any content in these tags so there is no duplicate counting
-			boldTags.remove();
+			importantTags.remove();
 		}
 //		System.out.println("This is Bolding: " + boldTags.text());
 
@@ -378,6 +378,15 @@ public class SearchEngine {
 
 		}
 		
+		//Need to parse the remaining content after all the important tags have been deleted 
+		if(content != null && !content.isEmpty()){
+			field = new Field("content", content, type);
+			
+			//Setting the default boost
+			field.setBoost(1); 
+			doc.add(field);
+		}
+		
 		//Need to make sure we have content before attempting to add a link to a document
 		if(doc.getFields().size() > 0)
 		{
@@ -391,15 +400,6 @@ public class SearchEngine {
 			w.addDocument(doc);
 			
 			return 0;
-		}
-
-		//Need to parse the remaining content after all the important tags have been deleted 
-		if(content != null && !content.isEmpty()){
-			field = new Field("content", content, type);
-			
-			//Setting the default boost
-			field.setBoost(1); 
-			doc.add(field);
 		}
 		
 		return -1;
