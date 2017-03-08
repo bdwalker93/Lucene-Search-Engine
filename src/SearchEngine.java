@@ -48,6 +48,8 @@ public class SearchEngine {
 	final private static boolean PRINT_METRIC_TO_SCREEN = true;
 	final private static boolean PRINT_METRIC_TO_FILE = false;
 	
+	final private static boolean PRINT_INDEX_TO_PARSING = false;
+
 	final private  boolean GET_CONTENT_URL = false;
 	final private  boolean PRINT_CONTENT_STRING = false;
 	final private  boolean PRINT_CONTENT_BODY = false;
@@ -169,8 +171,13 @@ public class SearchEngine {
 //				 
 //				 inputFile = new File("WEBPAGES_RAW/0/189"); 
 //				 addDoc(w, "www2", inputFile);
+//				 
+//				 //crista lopes home page
+//				 inputFile = new File("WEBPAGES_RAW/51/46"); 
+//				 addDoc(w, "www2", inputFile);
 				 
-				 inputFile = new File("WEBPAGES_RAW/51/46"); 
+				 //for crista lopes new article
+				 inputFile = new File("WEBPAGES_RAW/57/392"); 
 				 addDoc(w, "www2", inputFile);
 			 }
 	
@@ -210,9 +217,6 @@ public class SearchEngine {
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 
 		Analyzer analyzer = new StandardAnalyzer();
-//		MultiFieldQueryParser multiQueryParser = new MultiFieldQueryParser(
-//		                                        new String[] {"bodytext", "title"},
-//		                                        analyzer);
 		
 		String[] fields = {"content", "title", "important", "h1", "h2", "h3", "h4", "h5", "h6"};
 		BooleanClause.Occur[] flags = 
@@ -228,7 +232,7 @@ public class SearchEngine {
 			BooleanClause.Occur.SHOULD,
          };
 		
-		TopDocs docs = indexSearcher.search(MultiFieldQueryParser.parse(searchString, fields, flags, analyzer), 500);
+		TopDocs docs = indexSearcher.search(MultiFieldQueryParser.parse(searchString, fields, flags, analyzer), 10);
 
 		ScoreDoc[] hits = docs.scoreDocs;
 
@@ -339,6 +343,9 @@ public class SearchEngine {
 			doc.add(field);
 		}
 		
+		if(PRINT_INDEX_TO_PARSING)
+			System.out.println("This is title: " + title);
+
 		//Grab the important text tags
 		Elements importantTags = body.select("b, strong, em");
 
@@ -353,7 +360,8 @@ public class SearchEngine {
 			//We remove any content in these tags so there is no duplicate counting
 			importantTags.remove();
 		}
-//		System.out.println("This is Bolding: " + boldTags.text());
+		if(PRINT_INDEX_TO_PARSING)
+			System.out.println("This is Bolding: " + importantTags.text());
 
 		
 		//Grab all heading tags
@@ -368,13 +376,14 @@ public class SearchEngine {
 				field = new Field("heading" + headingNum, hTags.html(), type);
 				
 				//Setting the heading tag boost
-				field.setBoost(1); 
+				field.setBoost(5); 
 				doc.add(field);
 				
 				//We remove any content in these tags so there is no duplicate counting
 				hTags.remove();
 			}
-//			System.out.println("This is heading: " + headingNum + " - " + hTags.text());
+			if(PRINT_INDEX_TO_PARSING)
+				System.out.println("This is heading: " + headingNum + " - " + hTags.text());
 
 		}
 		
@@ -386,7 +395,9 @@ public class SearchEngine {
 			field.setBoost(1); 
 			doc.add(field);
 		}
-		
+		if(PRINT_INDEX_TO_PARSING)
+			System.out.println("This is content: " + content);
+
 		//Need to make sure we have content before attempting to add a link to a document
 		if(doc.getFields().size() > 0)
 		{
