@@ -214,9 +214,16 @@ public class SearchEngine {
 //		                                        new String[] {"bodytext", "title"},
 //		                                        analyzer);
 		
-		String[] fields = {"content", "title"};
+		String[] fields = {"content", "title", "bold", "h1", "h2", "h3", "h4", "h5", "h6"};
 		BooleanClause.Occur[] flags = 
 		{
+			BooleanClause.Occur.SHOULD,
+			BooleanClause.Occur.SHOULD,
+			BooleanClause.Occur.SHOULD,
+			BooleanClause.Occur.SHOULD,
+			BooleanClause.Occur.SHOULD,
+			BooleanClause.Occur.SHOULD,
+			BooleanClause.Occur.SHOULD,
 			BooleanClause.Occur.SHOULD,
 			BooleanClause.Occur.SHOULD,
          };
