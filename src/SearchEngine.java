@@ -41,8 +41,8 @@ import org.jsoup.select.Elements;
 
 public class SearchEngine {
 
-	final private static boolean PRINT_INDEX_TO_SCREEN = false;
-	final private static boolean PRINT_INDEX_TO_FILE = true;
+	final private static boolean PRINT_INDEX_TO_SCREEN = true;
+	final private static boolean PRINT_INDEX_TO_FILE = false;
 	final private static boolean PRINT_METRIC_TO_SCREEN = true;
 	final private static boolean PRINT_METRIC_TO_FILE = false;
 	
@@ -51,7 +51,7 @@ public class SearchEngine {
 	final private  boolean PRINT_CONTENT_BODY = false;
 	final private  boolean PRINT_CONTENT_TEXT = false;
 
-	final private  boolean USE_REAL_FILES = true;
+	final private  boolean USE_REAL_FILES = false;
 	final private  int REAL_FILE_INDEX_LIMIT = -1;
 	
 	final private static  String REAL_INDEX = "index";
@@ -70,7 +70,7 @@ public class SearchEngine {
 		SearchEngine se = new SearchEngine();
 		Directory index = null;
 
-		operation op = operation.SEARCH;
+		operation op = operation.INDEX;
 		
 		File indexFile = new File(REAL_INDEX);
 		 
@@ -79,6 +79,7 @@ public class SearchEngine {
 		 {
 			indexFile.mkdir(); 
 		 }
+		
 		 
 		 index = new SimpleFSDirectory(indexFile.toPath());	
 		 
@@ -86,6 +87,8 @@ public class SearchEngine {
 			 case INDEX:
 				 se.indexCorpus(index);
 				 System.out.println("***INDEXING COMPLETE***");
+				 se.printInvertedIndex(index, PRINT_INDEX_TO_SCREEN, PRINT_INDEX_TO_FILE);
+
 				 break;
 				 
 			 case SEARCH:
@@ -155,13 +158,16 @@ public class SearchEngine {
 			 else
 			 {
 				 //***TEST CODE***
-				 inputFile = new File("SampleTextDoc.txt"); 
-				 addDoc(w, "www1", inputFile);
+//				 inputFile = new File("SampleTextDoc.txt"); 
+//				 addDoc(w, "www1", inputFile);
+//				 
+//				 inputFile = new File("secondSampleTextDoc.txt"); 
+//				 addDoc(w, "www2", inputFile);
+//				 
+//				 inputFile = new File("WEBPAGES_RAW/0/189"); 
+//				 addDoc(w, "www2", inputFile);
 				 
-				 inputFile = new File("secondSampleTextDoc.txt"); 
-				 addDoc(w, "www2", inputFile);
-				 
-				 inputFile = new File("WEBPAGES_RAW/0/189"); 
+				 inputFile = new File("WEBPAGES_RAW/51/46"); 
 				 addDoc(w, "www2", inputFile);
 			 }
 	
@@ -327,17 +333,22 @@ public class SearchEngine {
 			doc.add(field);
 		}
 		
-		//Grab the bold tags
-		Elements bodyTags = body.select("b");
+		//Grab the important text tags
+		Elements boldTags = body.select("b, strong, em");
 
-		if(bodyTags != null && !bodyTags.isEmpty())
+		if(boldTags != null && !boldTags.isEmpty())
 		{
-			field = new Field("bold", content, type);
+			field = new Field("bold", boldTags.html(), type);
 			
 			//Setting the bold tag boost
-			field.setBoost(8); 
+			field.setBoost(10); 
 			doc.add(field);
+			
+			//We remove any content in these tags so there is no duplicate counting
+			boldTags.remove();
 		}
+		System.out.println("This is Bolding: " + boldTags.text());
+
 		
 		//Grab all heading tags
 		Elements headingTags = body.select("h1, h2, h3, h4, h5, h6");
@@ -348,12 +359,17 @@ public class SearchEngine {
 			Elements hTags = headingTags.select("h" + (headingNum + 1));
 			if(hTags != null && !hTags.isEmpty())
 			{
-				field = new Field("heading" + headingNum, content, type);
+				field = new Field("heading" + headingNum, hTags.html(), type);
 				
 				//Setting the heading tag boost
-				field.setBoost(8); 
+				field.setBoost(10); 
 				doc.add(field);
+				
+				//We remove any content in these tags so there is no duplicate counting
+				hTags.remove();
 			}
+			System.out.println("This is heading: " + headingNum + " - " + hTags.text());
+
 		}
 		
 		//Need to make sure we have content before attempting to add a link to a document
