@@ -218,21 +218,28 @@ public class SearchEngine {
 
 		Analyzer analyzer = new StandardAnalyzer();
 		
-		String[] fields = {"content", "title", "important", "h1", "h2", "h3", "h4", "h5", "h6"};
-		BooleanClause.Occur[] flags = 
-		{
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-			BooleanClause.Occur.SHOULD,
-         };
+		String query_string = "title:" + searchString +  " OR content:" + searchString +  "OR important:" + searchString  + "OR h1:" + searchString +
+				"OR h2:" + searchString + "OR h3:" + searchString + "OR h4:" + searchString + "OR h5:" + searchString + "OR h6:" + searchString;
+		QueryParser queryParser = new QueryParser("title", analyzer);
 		
-		TopDocs docs = indexSearcher.search(MultiFieldQueryParser.parse(searchString, fields, flags, analyzer), 10);
+		TopDocs docs = indexSearcher.search(queryParser.parse(query_string), 10);
+		
+		
+//		String[] fields = {"content", "title", "important", "h1", "h2", "h3", "h4", "h5", "h6"};
+//		BooleanClause.Occur[] flags = 
+//		{
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//			BooleanClause.Occur.SHOULD,
+//         };
+//		
+//		TopDocs docs = indexSearcher.search(MultiFieldQueryParser.parse(searchString, fields, flags, analyzer), 10);
 
 		ScoreDoc[] hits = docs.scoreDocs;
 
@@ -240,7 +247,7 @@ public class SearchEngine {
 	    for(int i=0;i<hits.length;++i) {
 	    	int docId = hits[i].doc;
 	        Document d = indexSearcher.doc(docId);
-	        System.out.println((i + 1) + ". " + d.get("title") + "\t" + d.get("url")  + "\t" + hits[i].score);
+	        System.out.println((i + 1) + ". " + d.get("title") + "\t" + d.get("url") + "\t" + hits[i].score);
 	     }
 	}
 	
